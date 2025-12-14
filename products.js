@@ -1,56 +1,56 @@
 const products = [
     {
         id: 1,
-        name: "Red Dragon Puerh Brick",
+        name: "Червоний Дракон Пуер Цегла",
         price: 128,
         category: "Puerh",
         image: "assets/tea1.jpg",
-        description: "A limited edition 2011 fermented brick. Deep, earthy notes with a hint of dried dates. Aged to perfection.",
-        origin: "Menghai, Yunnan"
+        description: "Лімітована серія 2011 року, ферментована цегла. Глибокі земляні ноти з відтінком сушених фініків. Витриманий до досконалості.",
+        origin: "Меньхай, Юньнань"
     },
     {
         id: 2,
-        name: "GABA Oolong Reserve",
+        name: "ГАБА Улун Резерв",
         price: 45,
         category: "Oolong",
         image: "assets/tea2.jpg",
-        description: "High-mountain Oolong rich in GABA. Sweet, fruity taste with a calming effect. Perfect for evening relaxation.",
-        origin: "Alishan, Taiwan"
+        description: "Високогірний улун, багатий на ГАМК. Солодкий фруктовий смак із заспокійливим ефектом. Ідеально підходить для вечірнього відпочинку.",
+        origin: "Алішань, Тайвань"
     },
     {
         id: 3,
-        name: "Ancient Tree Raw Puerh",
+        name: "Пуер Стародавніх Дерев",
         price: 89,
         category: "Puerh",
         image: "assets/tea3.jpg",
-        description: "Harvested from 300-year-old trees. Vibrant energy (Cha Qi) with a lingering floral sweetness.",
-        origin: "Yiwu Mountain"
+        description: "Зібраний з 300-річних дерев. Потужна енергія (Ча Ци) з тривалим квітковим післясмаком.",
+        origin: "Гора Іу"
     },
     {
         id: 4,
-        name: "Imperial Tie Guan Yin",
+        name: "Імператорський Ті Гуань Інь",
         price: 34,
         category: "Oolong",
         image: "assets/tea4.jpg",
-        description: "Premium Iron Goddess of Mercy. Floral orchid aroma with a creamy texture and long-lasting finish.",
-        origin: "Anxi, Fujian"
+        description: "Преміальна Залізна Богиня Милосердя. Квітковий аромат орхідеї з кремовою текстурою та тривалим фінішем.",
+        origin: "Аньсі, Фуцзянь"
     },
     {
         id: 5,
-        name: "Golden Dragon Pillar",
+        name: "Золотий Стовп Дракона",
         price: 250,
         category: "Puerh",
         image: "assets/tea5.jpg",
-        description: "A ceremonial log of compressed black tea. Rich, malty, and smooth. A true collector's item.",
-        origin: "Fengqing, Yunnan"
+        description: "Церемоніальний пресований чорний чай. Насичений, солодовий і м'який. Справжній екземпляр для колекціонерів.",
+        origin: "Фенцін, Юньнань"
     },
     {
         id: 6,
-        name: "Silver Needle Supreme",
+        name: "Срібні Голки (Бай Хао)",
         price: 65,
         category: "White",
         image: "assets/tea6.png",
-        description: "The champagne of teas. Plump, downy buds with a delicate honeydew flavor and crystalline liquor.",
-        origin: "Fuding, Fujian"
+        description: "Шампанське серед чаїв. Пухкі нирки з ніжним смаком дині та кришталево чистим настоєм.",
+        origin: "Фудін, Фуцзянь"
     }
 ];

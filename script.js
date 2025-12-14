@@ -178,25 +178,26 @@ window.processCheckout = function () {
         return sum + (p ? p.price * qty : 0);
     }, 0);
 
-    let message = "🍵 *Нове Замовлення JEFE* 🍵\n\n";
+    let message = "Привіт! \nХочу замовити ";
+    const items = [];
     Object.entries(cart).forEach(([id, qty]) => {
         const product = products.find(p => p.id === parseInt(id));
         if (product) {
-            message += `• ${product.name} x${qty} - $${product.price * qty}\n`;
+            items.push(`${product.name} (x${qty})`);
         }
     });
-    message += `\n💰 *Всього: $${total}*`;
 
-    // Try to copy to clipboard for user convenience (might not work in all webviews)
-    /* 
-    navigator.clipboard.writeText(message).then(() => {
-        // Success
-    }).catch(err => {
-        console.log('Clipboard failed', err);
-    });
-    */
+    message += items.join(', ');
+    message += `\nСума: ${total}$`;
 
-    const url = `https://t.me/jefesike?start=order&text=${encodeURIComponent(message)}`;
+    // Copy to clipboard fallback (just in case)
+    try {
+        navigator.clipboard.writeText(message);
+    } catch (e) {
+        console.log('Clipboard access denied');
+    }
+
+    const url = `https://t.me/jefesike?text=${encodeURIComponent(message)}`;
     tg.openTelegramLink(url);
     tg.close();
 };

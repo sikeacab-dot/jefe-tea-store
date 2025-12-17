@@ -22,9 +22,9 @@ const products = [
         "image": "assets/tea1.jpg",
         "origin": "Меньхай, Юньнань",
         "description": "Лімітована серія 2011 року, ферментована цегла. Глибокі земляні ноти з відтінком сушених фініків. Витриманий до досконалості.",
-        "badge": "star",
+        "badge": "",
         "brewing": {
-            "steeps": 0,
+            "steeps": 5,
             "time": 0,
             "grams": 0
         }

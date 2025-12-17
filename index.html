@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zen Tea Store</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-top">
+                <h1>JEFE TEA</h1>
+                <div class="cart-icon-wrapper" onclick="openCart()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M9 20C9 21.1046 8.10457 22 7 22C5.89543 22 5 21.1046 5 20C5 18.8954 5.89543 18 7 18C8.10457 18 9 18.8954 9 20Z"
+                            fill="currentColor" />
+                        <path
+                            d="M21 20C21 21.1046 20.1046 22 19 22C17.8954 22 17 21.1046 17 20C17 18.8954 17.8954 18 19 18C20.1046 18 21 18.8954 21 20Z"
+                            fill="currentColor" />
+                        <path
+                            d="M1 1H4L6.68 14.39C6.77144 14.8504 7.02191 15.264 7.38755 15.5583C7.75318 15.8526 8.2107 16.009 8.68 16H19.4C19.8693 16.009 20.3268 15.8526 20.6925 15.5583C21.0581 15.264 21.3086 14.8504 21.4 14.39L23 6H6"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <span id="cart-badge" class="cart-badge">0</span>
+                </div>
+            </div>
+            <div class="subtitle">Premium Chinese Collection</div>
+        </div>
+        <div class="category-scroll">
+            <button class="cat-btn active" onclick="filterCategory('all')">Усі</button>
+            <button class="cat-btn" onclick="filterCategory('Puerh')">Пуер</button>
+            <button class="cat-btn" onclick="filterCategory('Oolong')">Улун</button>
+            <button class="cat-btn" onclick="filterCategory('Green')">Зелений</button>
+            <button class="cat-btn" onclick="filterCategory('White')">Білий</button>
+            <button class="cat-btn" onclick="filterCategory('Black')">Червоний</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="product-list" class="product-grid">
+            <!-- Products will be injected here -->
+        </div>
+    </div>
+
+    <!-- Product Details Modal -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <img id="modal-image" src="" alt="" class="modal-image">
+
+            <div class="modal-body">
+                <div class="modal-header">
+                    <h2 id="modal-title" class="modal-title"></h2>
+                    <div id="modal-price" class="modal-price"></div>
+                </div>
+
+                <div class="modal-meta">
+                    <span id="modal-category" class="tag"></span>
+                    <span id="modal-origin" class="tag"></span>
+                </div>
+
+                <p id="modal-description" class="modal-description"></p>
+
+                <!-- Brewing Guide Injection Point -->
+                <div id="modal-brewing" class="brewing-guide"></div>
+
+                <div class="quantity-control">
+                    <button class="btn-circle" onclick="adjustQuantity(-1)">-</button>
+                    <span id="quantity-display" class="quantity-display">1</span>
+                    <button class="btn-circle" onclick="adjustQuantity(1)">+</button>
+                </div>
+
+                <div class="modal-actions">
+                    <button id="add-to-cart-btn" class="btn-primary" onclick="addToCart(false)">
+                        У Кошик
+                    </button>
+                    <button id="buy-now-btn" class="btn-secondary" onclick="addToCart(true)">
+                        Купити Зараз
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add to Cart Confirmation Modal -->
+    <div id="cart-confirm-modal" class="modal-overlay center-modal">
+        <div class="modal-content-center">
+            <h3>Товар додано!</h3>
+            <div class="action-buttons">
+                <button class="btn-secondary" onclick="closeConfirmModal()">Продовжити покупки</button>
+                <button class="btn-primary" onclick="openCart()">Оформити замовлення</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Instruction Modal -->
+    <div id="checkout-modal" class="modal-overlay">
+        <div class="modal-content full-height">
+            <button class="close-modal" onclick="closeCheckout()">&times;</button>
+            <div class="checkout-body">
+                <h2>Ваш Кошик</h2>
+                <div id="cart-items" class="cart-items-list"></div>
+
+                <div class="checkout-footer">
+                    <div class="total-row">
+                        <span>Разом:</span>
+                        <span id="cart-total">$0</span>
+                    </div>
+
+                    <div class="checkout-instruction">
+                        <p>⚠️ <strong>Важливо:</strong></p>
+                        <p>При переході до діалогу ваше замовлення буде автоматично скопійоване.</p>
+                        <p>Будь ласка, надішліть його першим повідомленням.</p>
+                    </div>
+
+                    <button class="btn-primary" onclick="processCheckout()">
+                        Перейти до діалогу ->
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="products.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

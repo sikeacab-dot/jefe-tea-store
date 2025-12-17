@@ -32,7 +32,7 @@ const cartBadge = document.getElementById('cart-badge');
 
 // Localization Map (Simple)
 const STRINGS = {
-    currency: '$'
+    currency: '₴'
 };
 
 // Make functions global
@@ -43,11 +43,19 @@ window.renderProducts = function (filter = 'all') {
 
     productList.innerHTML = filteredProducts.map(product => `
         <div class="product-card" onclick="window.openProduct(${product.id})">
+            ${product.badge === 'fire' ? `
+                <div class="product-badge">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.5 2 3.5 6.5 3.5 11C3.5 15.5 6.5 19.5 9.5 21.5C9.5 21.5 6.5 18 6.5 15C6.5 12 9 9.5 12 7C15 9.5 17.5 12 17.5 15C17.5 18 14.5 21.5 14.5 21.5C17.5 19.5 20.5 15.5 20.5 11C20.5 6.5 17.5 2 12 2Z" 
+                        stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            ` : ''}
             <img src="${product.image}" alt="${product.name}" class="product-image" loading="lazy">
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
                 <div class="product-name">${product.name}</div>
-                <div class="product-price">${STRINGS.currency}${product.price}</div>
+                <div class="product-price">${product.price}${STRINGS.currency}</div>
                 <button class="btn-mini-add">Додати</button>
             </div>
         </div>
@@ -81,6 +89,32 @@ window.openProduct = function (id) {
     modalCategory.textContent = product.category;
     modalOrigin.textContent = product.origin;
     modalDescription.textContent = product.description;
+
+    // Brewing Guide
+    const brewContainer = document.getElementById('modal-brewing');
+    if (product.brewing) {
+        brewContainer.style.display = 'grid';
+        brewContainer.innerHTML = `
+            <div class="brew-item">
+                <div class="brew-icon">🌊</div>
+                <div class="brew-value">${product.brewing.steeps || '-'}</div>
+                <div class="brew-label">Проливи</div>
+            </div>
+            <div class="brew-item">
+                <div class="brew-icon">⏱️</div>
+                <div class="brew-value">${product.brewing.time || '-'}с</div>
+                <div class="brew-label">Час</div>
+            </div>
+            <div class="brew-item">
+                <div class="brew-icon">⚖️</div>
+                <div class="brew-value">${product.brewing.grams || '-'}г</div>
+                <div class="brew-label">Вага</div>
+            </div>
+        `;
+    } else {
+        brewContainer.style.display = 'none';
+        brewContainer.innerHTML = '';
+    }
 
     modal.classList.add('active');
     if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');

@@ -1,5 +1,20 @@
 const products = [
     {
+        "id": 1765987056063,
+        "name": "цу5ецу",
+        "category": "Oolong",
+        "price": 10,
+        "image": "assets/tea_new.jpg",
+        "origin": "2345е243е",
+        "description": "",
+        "badge": "fire",
+        "brewing": {
+            "steeps": 8,
+            "time": 19,
+            "grams": 6
+        }
+    },
+    {
         "id": 2,
         "name": "ГАБА Улун Резерв",
         "category": "Oolong",

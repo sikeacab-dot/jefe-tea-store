@@ -45,9 +45,8 @@ window.renderProducts = function (filter = 'all') {
         <div class="product-card" onclick="window.openProduct(${product.id})">
             ${product.badge === 'fire' ? `
                 <div class="product-badge">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2C6.5 2 3.5 6.5 3.5 11C3.5 15.5 6.5 19.5 9.5 21.5C9.5 21.5 6.5 18 6.5 15C6.5 12 9 9.5 12 7C15 9.5 17.5 12 17.5 15C17.5 18 14.5 21.5 14.5 21.5C17.5 19.5 20.5 15.5 20.5 11C20.5 6.5 17.5 2 12 2Z" 
-                        stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19.48 13.03c-.32-.8-.82-1.53-1.48-2.14-.52-.47-.91-.97-1.2-1.5-.67-.86-.99-1.83-1.13-2.79-.33-2.39 1.67-4.38 4.07-4.71-.77-.13-1.56-.08-2.33.12-2.36.42-3.8 2.65-3.21 4.98-2.58.55-4.48 2.82-4.48 5.67 0 .2.02.4.05.6-.24.05-.44.05-.69.05-1.19-.19-2.27-.75-2.99-1.65-1.78 2.52-1.25 5.94.03 8.97 1.67 3.96 6.28 5.85 10.22 4.19 2.15-.91 3.67-2.68 4.25-4.78.2-.74.32-1.51.25-2.29-.05-.77-.35-1.39-1.02-1.74l-.34.02z" />
                     </svg>
                 </div>
             ` : ''}
@@ -93,22 +92,28 @@ window.openProduct = function (id) {
     // Brewing Guide
     const brewContainer = document.getElementById('modal-brewing');
     if (product.brewing) {
-        brewContainer.style.display = 'grid';
+        brewContainer.style.display = 'flex';
         brewContainer.innerHTML = `
-            <div class="brew-item">
-                <div class="brew-icon">🌊</div>
-                <div class="brew-value">${product.brewing.steeps || '-'}</div>
-                <div class="brew-label">Проливи</div>
+            <div class="brew-tag" title="Кількість проливів">
+                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 8h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1M6 9v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M6 9l2-5h8l2 5M10.5 14a2.5 2.5 0 1 0 5 0"/>
+                </svg>
+                <span>${product.brewing.steeps}</span>
             </div>
-            <div class="brew-item">
-                <div class="brew-icon">⏱️</div>
-                <div class="brew-value">${product.brewing.time || '-'}с</div>
-                <div class="brew-label">Час</div>
+            <div class="brew-tag" title="Час заварювання">
+                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>${product.brewing.time}с</span>
             </div>
-            <div class="brew-item">
-                <div class="brew-icon">⚖️</div>
-                <div class="brew-value">${product.brewing.grams || '-'}г</div>
-                <div class="brew-label">Вага</div>
+            <div class="brew-tag" title="Вага">
+                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 5H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5z"/>
+                    <path d="M12 12h.01"/>
+                    <path d="M12 8v-3"/>
+                </svg>
+                <span>${product.brewing.grams}г</span>
             </div>
         `;
     } else {

@@ -103,16 +103,6 @@ window.openProduct = function (id) {
     modalDescription.textContent = product.description;
 
     // Price & Variants Logic
-    const variantContainer = document.getElementById('modal-variants');
-    if (!variantContainer) {
-        // Create container if missing (dynamic insertion helper)
-        const priceEl = document.getElementById('modal-price');
-        const d = document.createElement('div');
-        d.id = 'modal-variants';
-        d.className = 'weight-options';
-        priceEl.parentNode.insertBefore(d, priceEl.nextSibling);
-    }
-
     const vContainer = document.getElementById('modal-variants');
     vContainer.innerHTML = '';
 

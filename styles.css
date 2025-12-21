@@ -355,25 +355,36 @@ h1 {
     width: 60%;
     height: 1px;
     background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
-    margin: 20px 0;
-}
-
-/* Product Detail Modal Specifics */
-.modal-image {
-    width: 100%;
-    height: 300px;
-    object-fit: contain;
-    /* Full Image */
-    background: #000;
-    flex-shrink: 0;
+    margin: 25px 0;
+    /* Equal 25px top and bottom */
 }
 
 .weight-options {
     display: flex;
     gap: 8px;
-    margin: 10px 0;
+    margin: 15px 0 0 0;
+    /* Margin top to separate from price, 0 bottom because divider has margin-top */
     justify-content: center;
     flex-wrap: wrap;
+}
+
+.modal-description {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0 0 25px 0;
+    /* No top margin, rely on divider's bottom 25px */
+    max-width: 100%;
+}
+
+.brewing-guide {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    margin: 0 0 24px 0;
+    /* No top margin if it follows description */
+    justify-content: center;
 }
 
 .weight-btn {

@@ -4,7 +4,7 @@ const products = [
         "name": "ГАБА Улун Резерв",
         "category": "Oolong",
         "price": 450,
-        "image": "assets/tea2.jpg",
+        "image": "assets/ndv2.jpg",
         "origin": "Алішань, Тайвань",
         "description": "Високогірний улун, багатий на ГАМК. Солодкий фруктовий смак із заспокійливим ефектом. Ідеально підходить для вечірнього відпочинку.",
         "badge": "none",

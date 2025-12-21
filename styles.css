@@ -345,8 +345,17 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding-bottom: 4px;
+    /* Tiny adjustment for &times; vertical alignment */
     cursor: pointer;
     z-index: 10;
+}
+
+.modal-divider {
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+    margin: 20px 0;
 }
 
 /* Product Detail Modal Specifics */

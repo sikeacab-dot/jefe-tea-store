@@ -46,9 +46,9 @@ window.renderProducts = function (filter = 'all') {
         let priceDisplay = `${product.price}₴`;
         if (product.variants) {
             if (product.variants['100']) {
-                priceDisplay = `${product.variants['100']}₴ / 100г`;
+                priceDisplay = `${product.variants['100']}₴`;
             } else {
-                // Show "from X"
+                // Show raw min price
                 const vals = Object.values(product.variants);
                 const min = Math.min(...vals);
                 priceDisplay = `${min}₴`;
@@ -100,7 +100,6 @@ window.openProduct = function (id) {
     modalImage.src = product.image;
     modalTitle.textContent = product.name;
     modalCategory.textContent = product.category;
-    modalOrigin.textContent = product.origin;
     modalDescription.textContent = product.description;
 
     // Price & Variants Logic

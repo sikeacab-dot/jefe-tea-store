@@ -9,6 +9,20 @@ try {
 }
 
 // State
+// Load products from localStorage or fallback
+window.allProducts = (function () {
+    const stored = localStorage.getItem('jefe_products');
+    if (stored) {
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            console.error('Failed to parse stored products:', e);
+            return products;
+        }
+    }
+    return products; // Global from products.js
+})();
+
 let cart = {};
 let currentProductId = null;
 let currentQuantity = 1;
@@ -38,8 +52,8 @@ const STRINGS = {
 // Make functions global
 window.renderProducts = function (filter = 'all') {
     const filteredProducts = filter === 'all'
-        ? products
-        : products.filter(p => p.category === filter);
+        ? window.allProducts
+        : window.allProducts.filter(p => p.category === filter);
 
     productList.innerHTML = filteredProducts.map(product => {
         // Price Logic for Card
@@ -89,7 +103,7 @@ window.filterCategory = function (category) {
 };
 
 window.openProduct = function (id) {
-    const product = products.find(p => p.id === id);
+    const product = window.allProducts.find(p => p.id === id);
     if (!product) return;
 
     currentProductId = id;
@@ -107,6 +121,7 @@ window.openProduct = function (id) {
     vContainer.innerHTML = '';
 
     if (product.variants) {
+        vContainer.style.display = 'flex';
         // Sort keys: 50, 100, 200, 250, 357
         const weights = Object.keys(product.variants).sort((a, b) => Number(a) - Number(b));
 
@@ -124,6 +139,7 @@ window.openProduct = function (id) {
 
     } else {
         // Fixed Price
+        vContainer.style.display = 'none';
         modalPrice.textContent = `${product.price}₴`;
     }
 
@@ -164,7 +180,7 @@ window.openProduct = function (id) {
 };
 
 window.setVariant = function (weight) {
-    const product = products.find(p => p.id === currentProductId);
+    const product = window.allProducts.find(p => p.id === currentProductId);
     if (!product || !product.variants[weight]) return;
 
     window.currentVariant = weight;
@@ -247,7 +263,7 @@ window.openCart = function () {
             const [idStr, variant] = key.split('_');
             const id = parseInt(idStr);
 
-            const product = products.find(p => p.id === id);
+            const product = window.allProducts.find(p => p.id === id);
             if (!product) return '';
 
             // Determine Price
@@ -294,7 +310,7 @@ window.processCheckout = function () {
     const total = Object.entries(cart).reduce((sum, [key, qty]) => {
         const [idStr, variant] = key.split('_');
         const id = parseInt(idStr);
-        const p = products.find(p => p.id === id);
+        const p = window.allProducts.find(p => p.id === id);
 
         if (!p) return sum;
 
@@ -310,7 +326,7 @@ window.processCheckout = function () {
     Object.entries(cart).forEach(([key, qty]) => {
         const [idStr, variant] = key.split('_');
         const id = parseInt(idStr);
-        const product = products.find(p => p.id === id);
+        const product = window.allProducts.find(p => p.id === id);
 
         if (product) {
             let name = product.name;

@@ -19,7 +19,7 @@ const products = [
         "name": "Червоний Дракон Пуер Цегла",
         "category": "Puerh",
         "price": 128,
-        "image": "ndblock.jpg",
+        "image": "assets/ndblock.jpg",
         "origin": "Меньхай, Юньнань",
         "description": "Лімітована серія 2011 року, ферментована цегла. Глибокі земляні ноти з відтінком сушених фініків. Витриманий до досконалості.",
         "badge": "none",

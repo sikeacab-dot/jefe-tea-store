@@ -355,15 +355,15 @@ h1 {
     width: 60%;
     height: 1px;
     background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
-    margin: 25px 0;
-    /* Equal 25px top and bottom */
+    margin: 25px auto;
+    /* Perfect 25px above and below */
 }
 
 .weight-options {
     display: flex;
     gap: 8px;
-    margin: 15px 0 0 0;
-    /* Margin top to separate from price, 0 bottom because divider has margin-top */
+    margin: 25px 0 0 0;
+    /* Gap from price above */
     justify-content: center;
     flex-wrap: wrap;
 }
@@ -413,7 +413,8 @@ h1 {
 }
 
 .modal-header {
-    margin-bottom: 12px;
+    margin-bottom: 0px;
+    /* Reduced to avoid margin collision with divider/weights */
 }
 
 .modal-title {

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jefe Tea Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Admin specific overrides */
+        body {
+            padding-bottom: 100px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .admin-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .product-list-admin {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+
+        .admin-card:hover {
+            border-color: var(--text-primary);
+        }
+
+        .drag-handle {
+            cursor: move;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            padding: 0 10px;
+        }
+
+        .admin-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .admin-info {
+            flex-grow: 1;
+        }
+
+        .admin-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .btn-sm:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-danger {
+            color: #ff453a;
+            border-color: rgba(255, 69, 58, 0.3);
+        }
+
+        /* Edit Modal */
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 1rem;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .floating-save {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-header">
+        <h1>Admin Panel</h1>
+        <div class="admin-controls">
+            <button class="btn-secondary" onclick="resetToDefault()">Сброс</button>
+            <button class="btn-primary" onclick="downloadProducts()">⬇ Скачать products.js</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Category Tabs -->
+        <div class="category-scroll" style="margin-bottom: 20px; padding: 10px 0;">
+            <button class="cat-btn active" onclick="filterAdmin('all')">Все</button>
+            <button class="cat-btn" onclick="filterAdmin('Puerh')">Puerh</button>
+            <button class="cat-btn" onclick="filterAdmin('Oolong')">Oolong</button>
+            <button class="cat-btn" onclick="filterAdmin('Green')">Green</button>
+            <button class="cat-btn" onclick="filterAdmin('White')">White</button>
+            <button class="cat-btn" onclick="filterAdmin('Black')">Black</button>
+        </div>
+
+        <div class="product-list-admin" id="admin-list">
+            <!-- Items injected by JS -->
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn-secondary" style="width: 100%; max-width: 400px;" onclick="openEditModal()">+ Добавить
+                товар</button>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal-overlay center-modal">
+        <div class="modal-content" style="max-width: 500px; max-height: 90vh; border-radius: 20px;">
+            <div class="modal-header" style="padding: 20px; border-bottom: 1px solid var(--border-color);">
+                <h2 id="edit-modal-title" class="modal-title" style="font-size: 1.5rem;">Редактирование</h2>
+                <button class="close-modal" onclick="closeEditModal()" style="top: 15px; right: 15px;">&times;</button>
+            </div>
+
+            <div class="modal-body" style="padding: 20px; overflow-y: auto;">
+                <input type="hidden" id="edit-id">
+
+                <div class="form-group">
+                    <label class="form-label">Название</label>
+                    <input type="text" id="edit-name" class="form-input" placeholder="Название чая">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Категория</label>
+                    <select id="edit-category" class="form-select">
+                        <option value="Puerh">Puerh (Пуер)</option>
+                        <option value="Oolong">Oolong (Улун)</option>
+                        <option value="Green">Green (Зелений)</option>
+                        <option value="White">White (Білий)</option>
+                        <option value="Black">Black (Червоний)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Тип цены</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button id="mode-fixed" class="btn-sm active"
+                            onclick="setPricingMode('fixed')">Фиксированная</button>
+                        <button id="mode-variant" class="btn-sm" onclick="setPricingMode('variant')">По весу</button>
+                    </div>
+
+                    <!-- Fixed Price Input -->
+                    <div id="price-fixed-container">
+                        <label class="form-label">Цена (₴)</label>
+                        <input type="number" id="edit-price" class="form-input" placeholder="0">
+                    </div>
+
+                    <!-- Variants Input -->
+                    <div id="price-variant-container" style="display: none;">
+                        <label class="form-label">Варианты веса (отметьте и укажите цену)</label>
+                        <div class="variant-row"
+                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <input type="checkbox" id="check-50"> <span style="width: 40px;">50г</span>
+                            <input type="number" id="price-50" class="form-input" placeholder="Цена" style="flex:1"
+                                disabled>
+                        </div>
+                        <div class="variant-row"
+                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <input type="checkbox" id="check-100"> <span style="width: 40px;">100г</span>
+                            <input type="number" id="price-100" class="form-input" placeholder="Цена" style="flex:1"
+                                disabled>
+                        </div>
+                        <div class="variant-row"
+                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <input type="checkbox" id="check-200"> <span style="width: 40px;">200г</span>
+                            <input type="number" id="price-200" class="form-input" placeholder="Цена" style="flex:1"
+                                disabled>
+                        </div>
+                        <div class="variant-row"
+                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <input type="checkbox" id="check-250"> <span style="width: 40px;">250г</span>
+                            <input type="number" id="price-250" class="form-input" placeholder="Цена" style="flex:1"
+                                disabled>
+                        </div>
+                        <div class="variant-row"
+                            style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <input type="checkbox" id="check-357"> <span style="width: 40px;">357г</span>
+                            <input type="number" id="price-357" class="form-input" placeholder="Цена" style="flex:1"
+                                disabled>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Фото (Авто-сжатие)</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="edit-image" class="form-input" placeholder="assets/tea1.jpg or Base64">
+                        <label for="file-upload" class="btn-secondary"
+                            style="display:flex; align-items:center; cursor:pointer;">
+                            📂
+                        </label>
+                        <input type="file" id="file-upload" accept="image/*" style="display: none;">
+                    </div>
+                    <img id="image-preview" src=""
+                        style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); display: none;">
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">Загрузите фото, оно автоматически
+                        сожмется для быстрой работы.</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Происхождение</label>
+                    <input type="text" id="edit-origin" class="form-input" placeholder="Напр. Юньнань">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Бейдж</label>
+                    <select id="edit-badge" class="form-select">
+                        <option value="none">Нет</option>
+                        <option value="fire">Огонь 🔥</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Инструкция по заварке</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div>
+                            <span style="font-size: 0.8rem; color: #888;">Проливы</span>
+                            <input type="number" id="edit-steeps" class="form-input" placeholder="7">
+                        </div>
+                        <div>
+                            <span style="font-size: 0.8rem; color: #888;">Время (с)</span>
+                            <input type="number" id="edit-time" class="form-input" placeholder="15">
+                        </div>
+                        <div>
+                            <span style="font-size: 0.8rem; color: #888;">Граммы</span>
+                            <input type="number" id="edit-grams" class="form-input" placeholder="5">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea id="edit-description" class="form-textarea" placeholder="Описание вкуса..."></textarea>
+                </div>
+
+                <button class="btn-primary" onclick="saveProduct()" style="width: 100%">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="products.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

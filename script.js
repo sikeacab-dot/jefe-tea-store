@@ -41,7 +41,21 @@ window.renderProducts = function (filter = 'all') {
         ? products
         : products.filter(p => p.category === filter);
 
-    productList.innerHTML = filteredProducts.map(product => `
+    productList.innerHTML = filteredProducts.map(product => {
+        // Price Logic for Card
+        let priceDisplay = `${product.price}₴`;
+        if (product.variants) {
+            if (product.variants['100']) {
+                priceDisplay = `${product.variants['100']}₴ / 100г`;
+            } else {
+                // Show "from X"
+                const vals = Object.values(product.variants);
+                const min = Math.min(...vals);
+                priceDisplay = `${min}₴`;
+            }
+        }
+
+        return `
         <div class="product-card" onclick="window.openProduct(${product.id})">
             ${product.badge === 'fire' ? `
                 <div class="product-badge">
@@ -54,11 +68,11 @@ window.renderProducts = function (filter = 'all') {
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
                 <div class="product-name">${product.name}</div>
-                <div class="product-price">${product.price}${STRINGS.currency}</div>
+                <div class="product-price">${priceDisplay}</div>
                 <button class="btn-mini-add">Додати</button>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 };
 
 window.filterCategory = function (category) {
@@ -80,14 +94,49 @@ window.openProduct = function (id) {
 
     currentProductId = id;
     currentQuantity = 1;
+    window.currentVariant = null; // Reset variant
     window.updateQuantityDisplay();
 
     modalImage.src = product.image;
     modalTitle.textContent = product.name;
-    modalPrice.textContent = `${STRINGS.currency}${product.price}`;
     modalCategory.textContent = product.category;
     modalOrigin.textContent = product.origin;
     modalDescription.textContent = product.description;
+
+    // Price & Variants Logic
+    const variantContainer = document.getElementById('modal-variants');
+    if (!variantContainer) {
+        // Create container if missing (dynamic insertion helper)
+        const priceEl = document.getElementById('modal-price');
+        const d = document.createElement('div');
+        d.id = 'modal-variants';
+        d.className = 'weight-options';
+        priceEl.parentNode.insertBefore(d, priceEl.nextSibling);
+    }
+
+    const vContainer = document.getElementById('modal-variants');
+    vContainer.innerHTML = '';
+
+    if (product.variants) {
+        // Sort keys: 50, 100, 200, 250, 357
+        const weights = Object.keys(product.variants).sort((a, b) => Number(a) - Number(b));
+
+        weights.forEach(w => {
+            const btn = document.createElement('button');
+            btn.className = 'weight-btn';
+            btn.textContent = `${w}г`;
+            btn.onclick = () => window.setVariant(w);
+            vContainer.appendChild(btn);
+        });
+
+        // Default to 100g if exists, else first
+        if (product.variants['100']) window.setVariant('100');
+        else window.setVariant(weights[0]);
+
+    } else {
+        // Fixed Price
+        modalPrice.textContent = `${product.price}₴`;
+    }
 
     // Brewing Guide
     const brewContainer = document.getElementById('modal-brewing');
@@ -125,9 +174,26 @@ window.openProduct = function (id) {
     if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 };
 
+window.setVariant = function (weight) {
+    const product = products.find(p => p.id === currentProductId);
+    if (!product || !product.variants[weight]) return;
+
+    window.currentVariant = weight;
+
+    // Update Price
+    document.getElementById('modal-price').textContent = `${product.variants[weight]}₴`;
+
+    // Update Buttons
+    document.querySelectorAll('.weight-btn').forEach(btn => {
+        if (btn.textContent === `${weight}г`) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+};
+
 window.closeModal = function () {
     modal.classList.remove('active');
     currentProductId = null;
+    window.currentVariant = null;
 };
 
 window.adjustQuantity = function (delta) {
@@ -145,8 +211,15 @@ window.updateQuantityDisplay = function () {
 
 window.addToCart = function (isBuyNow) {
     if (!currentProductId) return;
-    if (!cart[currentProductId]) cart[currentProductId] = 0;
-    cart[currentProductId] += currentQuantity;
+
+    // Create composite key for cart: ID_Weight (e.g. "123_100") or just ID ("123")
+    let cartKey = String(currentProductId);
+    if (window.currentVariant) {
+        cartKey = `${currentProductId}_${window.currentVariant}`;
+    }
+
+    if (!cart[cartKey]) cart[cartKey] = 0;
+    cart[cartKey] += currentQuantity;
 
     window.closeModal();
     window.updateCartBadge();
@@ -177,25 +250,42 @@ window.openCart = function () {
     if (cartEntries.length === 0) {
         // Handle empty cart if needed, or just show empty state
         cartItemsContainer.innerHTML = '<div class="empty-cart">Кошик порожній</div>';
-        cartTotalDisplay.textContent = '$0';
+        cartTotalDisplay.textContent = '0₴';
     } else {
         let total = 0;
-        cartItemsContainer.innerHTML = cartEntries.map(([id, qty]) => {
-            const product = products.find(p => p.id === parseInt(id));
+        cartItemsContainer.innerHTML = cartEntries.map(([key, qty]) => {
+            // Parse Key
+            const [idStr, variant] = key.split('_');
+            const id = parseInt(idStr);
+
+            const product = products.find(p => p.id === id);
             if (!product) return '';
-            const itemTotal = product.price * qty;
+
+            // Determine Price
+            let price = product.price;
+            let title = product.name;
+
+            if (variant && product.variants && product.variants[variant]) {
+                price = product.variants[variant];
+                title += ` (${variant}г)`;
+            } else if (variant) {
+                // Legacy or Broken state fallback
+                title += ` (${variant}г)`;
+            }
+
+            const itemTotal = price * qty;
             total += itemTotal;
             return `
                 <div class="cart-item">
                     <img src="${product.image}" class="cart-item-img">
                     <div class="cart-item-info">
-                        <div class="cart-item-title">${product.name}</div>
-                        <div class="cart-item-price">${qty} x $${product.price} = $${itemTotal}</div>
+                        <div class="cart-item-title">${title}</div>
+                        <div class="cart-item-price">${qty} x ${price}₴ = ${itemTotal}₴</div>
                     </div>
                 </div>
             `;
         }).join('');
-        cartTotalDisplay.textContent = `$${total}`;
+        cartTotalDisplay.textContent = `${total}₴`;
     }
 
     checkoutModal.classList.add('active');
@@ -212,22 +302,36 @@ window.updateCartBadge = function () {
 };
 
 window.processCheckout = function () {
-    const total = Object.entries(cart).reduce((sum, [id, qty]) => {
-        const p = products.find(p => p.id === parseInt(id));
-        return sum + (p ? p.price * qty : 0);
+    const total = Object.entries(cart).reduce((sum, [key, qty]) => {
+        const [idStr, variant] = key.split('_');
+        const id = parseInt(idStr);
+        const p = products.find(p => p.id === id);
+
+        if (!p) return sum;
+
+        let price = p.price;
+        if (variant && p.variants && p.variants[variant]) {
+            price = p.variants[variant];
+        }
+        return sum + (price * qty);
     }, 0);
 
-    let message = "Привіт! \nХочу замовити ";
+    let message = "Привіт! \nХочу замовити:\n";
     const items = [];
-    Object.entries(cart).forEach(([id, qty]) => {
-        const product = products.find(p => p.id === parseInt(id));
+    Object.entries(cart).forEach(([key, qty]) => {
+        const [idStr, variant] = key.split('_');
+        const id = parseInt(idStr);
+        const product = products.find(p => p.id === id);
+
         if (product) {
-            items.push(`${product.name} (x${qty})`);
+            let name = product.name;
+            if (variant) name += ` (${variant}г)`;
+            items.push("- " + name + ` (x${qty})`);
         }
     });
 
-    message += items.join(', ');
-    message += `\nСума: ${total}$`;
+    message += items.join('\n');
+    message += `\n\nСума: ${total}₴`;
 
     // Copy to clipboard fallback (just in case)
     try {

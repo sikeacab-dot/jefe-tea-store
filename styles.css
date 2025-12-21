@@ -353,8 +353,35 @@ h1 {
 .modal-image {
     width: 100%;
     height: 300px;
-    object-fit: cover;
+    object-fit: contain;
+    /* Full Image */
+    background: #000;
     flex-shrink: 0;
+}
+
+.weight-options {
+    display: flex;
+    gap: 8px;
+    margin: 10px 0;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.weight-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.weight-btn.active {
+    background: var(--text-primary);
+    color: var(--bg-color);
+    border-color: var(--text-primary);
+    font-weight: 700;
 }
 
 .modal-body {

@@ -306,7 +306,14 @@ window.updateCartBadge = function () {
     cartBadge.style.display = count > 0 ? 'flex' : 'none';
 };
 
-window.processCheckout = function () {
+// Bot Config
+const BOT_TOKEN = '8391787130:AAF_X5_sODHtWfQK4nNefdlrmlD_wb_E87w';
+const ADMIN_CHAT_ID = '5030636855';
+
+window.processCheckout = async function () {
+    const checkoutBtn = document.querySelector('.btn-checkout');
+    if (!checkoutBtn || checkoutBtn.disabled) return;
+
     const total = Object.entries(cart).reduce((sum, [key, qty]) => {
         const [idStr, variant] = key.split('_');
         const id = parseInt(idStr);
@@ -321,7 +328,15 @@ window.processCheckout = function () {
         return sum + (price * qty);
     }, 0);
 
-    let message = "Привіт! \nХочу замовити:\n";
+    const user = tg.initDataUnsafe?.user || {};
+    const userName = user.first_name || 'Клієнт';
+    const userUsername = user.username ? `@${user.username}` : 'немає';
+
+    let message = `📦 *Нове замовлення!*\n\n`;
+    message += `👤 *Клієнт:* ${userName} (${userUsername})\n`;
+    message += `🆔 *ID:* \`${user.id || 'невідомо'}\`\n\n`;
+    message += `🛒 *Товари:*\n`;
+
     const items = [];
     Object.entries(cart).forEach(([key, qty]) => {
         const [idStr, variant] = key.split('_');
@@ -331,24 +346,70 @@ window.processCheckout = function () {
         if (product) {
             let name = product.name;
             if (variant) name += ` (${variant}г)`;
-            items.push("- " + name + ` (x${qty})`);
+            items.push(`• ${name} x${qty}`);
         }
     });
 
     message += items.join('\n');
-    message += `\n\nСума: ${total}₴`;
+    message += `\n\n💰 *Сума:* ${total}₴`;
 
-    // Copy to clipboard fallback (just in case)
     try {
-        navigator.clipboard.writeText(message);
-    } catch (e) {
-        console.log('Clipboard access denied');
-    }
+        // Change button state
+        const originalText = checkoutBtn.textContent;
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = 'Надсилаємо...';
+        checkoutBtn.style.opacity = '0.7';
 
-    const url = `https://t.me/jefesike?text=${encodeURIComponent(message)}`;
-    tg.openTelegramLink(url);
-    tg.close();
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: ADMIN_CHAT_ID,
+                text: message,
+                parse_mode: 'Markdown'
+            })
+        });
+
+        if (response.ok) {
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+            // Show Success State in UI
+            cartItemsContainer.innerHTML = `
+                <div style="text-align:center; padding: 40px 20px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+                    <h2 style="margin-bottom: 10px;">Дякуємо!</h2>
+                    <p style="color: rgba(255,255,255,0.6); line-height: 1.5;">
+                        Ваше замовлення успішно надіслано.<br>Ми зв'яжемося з вами найближчим часом.
+                    </p>
+                </div>
+            `;
+            document.querySelector('.checkout-footer').style.display = 'none';
+
+            // Clear cart
+            cart = {};
+            window.updateCartBadge();
+
+            // Auto close after 3 seconds or allow manual close
+            setTimeout(() => {
+                window.closeCheckout();
+                // Reset UI for next time
+                setTimeout(() => {
+                    document.querySelector('.checkout-footer').style.display = 'flex';
+                }, 500);
+            }, 5000);
+
+        } else {
+            throw new Error('API Error');
+        }
+    } catch (e) {
+        console.error('Checkout failed:', e);
+        checkoutBtn.disabled = false;
+        checkoutBtn.textContent = 'Помилка. Спробуйте ще раз';
+        checkoutBtn.style.background = '#ff4444';
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+    }
 };
+
 
 // Event Listeners
 [modal, cartConfirmModal, checkoutModal].forEach(m => {

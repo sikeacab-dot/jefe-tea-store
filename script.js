@@ -377,9 +377,10 @@ window.openCart = function () {
 
             const itemTotal = price * qty;
             total += itemTotal;
+            const cartDisplayImage = (product.images && product.images.length > 0) ? product.images[0] : (product.image || 'assets/tea_new.jpg');
             return `
                 <div class="cart-item">
-                    <img src="${product.image}" class="cart-item-img">
+                    <img src="${cartDisplayImage}" class="cart-item-img">
                     <div class="cart-item-info">
                         <div class="cart-item-title">${title}</div>
                         <div class="cart-item-price">${qty} x ${price}₴ = ${itemTotal}₴</div>

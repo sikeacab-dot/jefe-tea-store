@@ -12,7 +12,7 @@ const products = [
         "image": "assets/ndv2.jpg",
         "origin": "Меньхай, Юньнань",
         "description": "Лімітована серія 2011 року, ферментована цегла. Глибокі земляні ноти з відтінком сушених фініків. Витриманий до досконалості.",
-        "badge": "fire",
+        "badge": "none",
         "brewing": {
             "steeps": 5,
             "time": 20,
@@ -47,10 +47,10 @@ const products = [
             "50": 210,
             "100": 380
         },
-        "image": "assets/tea3.jpg",
+        "image": "assets/ndv2.jpg",
         "origin": "Гора Іу",
         "description": "Зібраний з 300-річних дерев. Потужна енергія (Ча Ци) з тривалим квітковим післясмаком.",
-        "badge": "fire",
+        "badge": "none",
         "brewing": {
             "steeps": 8,
             "time": 15,
@@ -104,7 +104,7 @@ const products = [
             "50": 320,
             "100": 600
         },
-        "image": "assets/tea6.png",
+        "image": "assets/ndv2.jpg",
         "origin": "Фудін, Фуцзянь",
         "description": "Шампанське серед чаїв. Пухкі нирки з ніжним смаком дині та кришталево чистим настоєм.",
         "badge": "none",

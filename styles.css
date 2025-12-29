@@ -313,18 +313,21 @@ h1 {
 .modal-carousel {
     position: relative;
     width: 100%;
-    aspect-ratio: 1;
+    height: 0;
+    padding-bottom: 100%;
+    /* Force square ratio */
     overflow: hidden;
     background: #000;
     flex-shrink: 0;
-    /* Don't shrink carousel in flex container */
 }
 
 .carousel-track {
+    position: absolute;
+    top: 0;
+    left: 0;
     display: flex;
     height: 100%;
     width: 100%;
-    /* Base width */
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
     will-change: transform;
 }
@@ -335,22 +338,24 @@ h1 {
     object-fit: cover;
     flex-shrink: 0;
     display: block;
+    background: #1a1a1a;
+    /* Dark gray placeholder while loading */
 }
 
 .carousel-nav {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #FFF;
     padding: 12px 10px;
     cursor: pointer;
-    z-index: 5;
+    z-index: 10;
     border-radius: 8px;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    transition: 0.2s;
+    transition: 0.22s;
     font-size: 1.2rem;
 }
 

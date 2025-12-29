@@ -119,25 +119,40 @@ window.openProduct = function (id) {
     window.updateQuantityDisplay();
 
     // Init Carousel
-    let productImages = product.images || [];
+    let productImages = [];
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        productImages = product.images.filter(img => img && img.trim() !== '');
+    }
+
+    // Fallback to single image if needed
     if (productImages.length === 0 && product.image) {
         productImages = [product.image];
     }
+
+    // Global fallback if nothing found
     if (productImages.length === 0) {
-        productImages = ['assets/tea_new.jpg']; // Global fallback
+        productImages = ['assets/tea_new.jpg'];
     }
 
     const track = document.getElementById('carousel-track');
     const dotsContainer = document.getElementById('carousel-dots');
 
-    track.innerHTML = productImages.map(img => `<img src="${img}" alt="${product.name}" onerror="this.src='https://placehold.co/400x400?text=Image+Not+Found'">`).join('');
-    dotsContainer.innerHTML = productImages.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="window.goToImage(${i})"></div>`).join('');
+    track.innerHTML = productImages.map(img => `
+        <img src="${img}" 
+             alt="${product.name}" 
+             onerror="this.onerror=null; this.src='https://placehold.co/400x400?text=Tea+Image'">
+    `).join('');
+
+    const hasMultiple = productImages.length > 1;
+
+    dotsContainer.innerHTML = hasMultiple
+        ? productImages.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="window.goToImage(${i})"></div>`).join('')
+        : '';
 
     window.updateCarouselUI(); // Set initial state
 
     // UI controls visibility
     const navs = document.querySelectorAll('.carousel-nav');
-    const hasMultiple = productImages.length > 1;
     navs.forEach(nav => nav.style.display = hasMultiple ? 'block' : 'none');
     dotsContainer.style.display = hasMultiple ? 'flex' : 'none';
 

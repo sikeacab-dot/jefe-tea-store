@@ -251,19 +251,19 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Фото (Авто-сжатие)</label>
+                    <label class="form-label">Фото (до 5 шт.)</label>
+                    <div id="image-slots-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                        <!-- Slots will be injected by JS -->
+                    </div>
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <input type="text" id="edit-image" class="form-input" placeholder="assets/tea1.jpg or Base64">
-                        <label for="file-upload" class="btn-secondary"
-                            style="display:flex; align-items:center; cursor:pointer;">
+                        <input type="text" id="edit-image-url" class="form-input" placeholder="URL изображения или Base64">
+                        <label for="file-upload" class="btn-secondary" style="display:flex; align-items:center; cursor:pointer;" title="Загрузить файл">
                             📂
                         </label>
                         <input type="file" id="file-upload" accept="image/*" style="display: none;">
                     </div>
-                    <img id="image-preview" src=""
-                        style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); display: none;">
-                    <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">Загрузите фото, оно автоматически
-                        сожмется для быстрой работы.</div>
+                    <button type="button" class="btn-sm" onclick="addImageFromInput()" style="width: 100%; margin-bottom: 10px;">+ Добавить фото</button>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">Первое фото будет основным в каталоге.</div>
                 </div>
 
                 <div class="form-group">

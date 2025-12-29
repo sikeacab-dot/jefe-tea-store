@@ -55,8 +55,15 @@
     <!-- Product Details Modal -->
     <div id="product-modal" class="modal-overlay">
         <div class="modal-content">
-            <button class="close-modal" onclick="closeModal()">&times;</button>
-            <img id="modal-image" src="" alt="" class="modal-image">
+            <!-- Image Carousel -->
+            <div class="modal-carousel">
+                <div id="carousel-track" class="carousel-track">
+                    <!-- Images will be injected by JS -->
+                </div>
+                <button class="carousel-nav prev" onclick="moveCarousel(-1)">&#10094;</button>
+                <button class="carousel-nav next" onclick="moveCarousel(1)">&#10095;</button>
+                <div id="carousel-dots" class="carousel-dots"></div>
+            </div>
 
             <div class="modal-body">
                 <div class="modal-header">

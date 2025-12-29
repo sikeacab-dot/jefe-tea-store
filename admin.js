@@ -56,7 +56,7 @@ function renderAdminList() {
         div.className = 'admin-card';
         div.innerHTML = `
             <div class="drag-handle">::</div>
-            <img src="${p.image}" class="admin-thumb" onerror="this.src='https://placehold.co/60x60?text=No+Img'">
+            <img src="${(p.images && p.images[0]) || p.image}" class="admin-thumb" onerror="this.src='https://placehold.co/60x60?text=No+Img'">
             <div class="admin-info">
                 <div style="font-weight: bold;">
                     ${p.badge === 'fire' ? '🔥' : ''} ${p.name}
@@ -99,9 +99,13 @@ window.openEditModal = function (id = null) {
             document.getElementById('edit-name').value = p.name;
             document.getElementById('edit-category').value = p.category;
             document.getElementById('edit-price').value = p.price;
-            document.getElementById('edit-image').value = p.image;
+            document.getElementById('edit-image-url').value = '';
             document.getElementById('edit-origin').value = p.origin;
             document.getElementById('edit-description').value = p.description;
+
+            // Load images
+            window.currentImages = p.images ? [...p.images] : (p.image ? [p.image] : []);
+            renderImageSlots();
 
             // New Fields
             document.getElementById('edit-badge').value = p.badge || 'none';
@@ -135,10 +139,6 @@ window.openEditModal = function (id = null) {
                 document.querySelectorAll('.variant-row input[type="number"]').forEach(i => { i.disabled = true; i.value = ''; });
             }
 
-            // Preview
-            const imgPreview = document.getElementById('image-preview');
-            imgPreview.src = p.image;
-            imgPreview.style.display = 'block';
         }
     } else {
         // Clear form
@@ -155,7 +155,9 @@ window.openEditModal = function (id = null) {
         document.querySelectorAll('.check-weight').forEach(c => c.checked = false);
         document.querySelectorAll('.variant-row input[type="number"]:not(#edit-price)').forEach(i => { i.disabled = true; i.value = ''; });
 
-        document.getElementById('edit-image').value = 'assets/tea_new.jpg';
+        document.getElementById('edit-image-url').value = '';
+        window.currentImages = [];
+        renderImageSlots();
         document.getElementById('edit-origin').value = '';
         document.getElementById('edit-description').value = '';
 
@@ -164,9 +166,7 @@ window.openEditModal = function (id = null) {
         document.getElementById('edit-time').value = '20';
         document.getElementById('edit-grams').value = '5';
 
-        // Clear preview
-        document.getElementById('image-preview').style.display = 'none';
-        document.getElementById('image-preview').src = '';
+        // No preview for single image anymore
     }
 
     // Reset file input
@@ -211,7 +211,8 @@ window.saveProduct = function () {
         category: document.getElementById('edit-category').value,
         price: finalPrice, // Main price
         variants: Object.keys(variants).length > 0 ? variants : null, // Store map
-        image: document.getElementById('edit-image').value,
+        images: window.currentImages, // Store array
+        image: window.currentImages[0] || '', // Fallback for backward compatibility
         origin: document.getElementById('edit-origin').value,
         description: document.getElementById('edit-description').value,
 
@@ -329,15 +330,54 @@ document.getElementById('file-upload').addEventListener('change', function (e) {
             // Export as JPEG with 0.9 quality
             const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
 
-            // Update UI
-            document.getElementById('edit-image').value = dataUrl;
-            document.getElementById('image-preview').src = dataUrl;
-            document.getElementById('image-preview').style.display = 'block';
+            // Add to images
+            if (window.currentImages.length < 5) {
+                window.currentImages.push(dataUrl);
+                renderImageSlots();
+            } else {
+                alert('Максимум 5 фото');
+            }
         };
         img.src = event.target.result;
     };
     reader.readAsDataURL(file);
 });
+
+// Multi-Image Helpers
+window.currentImages = [];
+
+function renderImageSlots() {
+    const container = document.getElementById('image-slots-container');
+    if (!container) return;
+
+    container.innerHTML = window.currentImages.map((img, idx) => `
+        <div class="image-slot" style="position: relative; width: 80px; height: 80px;">
+            <img src="${img}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color);">
+            <button onclick="removeImage(${idx})" style="position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center;">&times;</button>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 10px; text-align: center; border-radius: 0 0 8px 8px;">${idx === 0 ? 'Главная' : idx + 1}</div>
+        </div>
+    `).join('');
+}
+
+window.addImageFromInput = function () {
+    const input = document.getElementById('edit-image-url');
+    const url = input.value.trim();
+    if (!url) return;
+
+    if (window.currentImages.length >= 5) {
+        alert('Максимум 5 фото');
+        return;
+    }
+
+    window.currentImages.push(url);
+    input.value = '';
+    renderImageSlots();
+};
+
+window.removeImage = function (index) {
+    window.currentImages.splice(index, 1);
+    renderImageSlots();
+};
 
 // Pricing Mode Logic
 window.currentPricingMode = 'fixed';

@@ -56,6 +56,9 @@ window.renderProducts = function (filter = 'all') {
         : window.allProducts.filter(p => p.category === filter);
 
     productList.innerHTML = filteredProducts.map(product => {
+        // Handle images (backward compatibility)
+        const displayImage = (product.images && product.images[0]) || product.image;
+
         // Price Logic for Card
         let priceDisplay = `${product.price}₴`;
         if (product.variants) {
@@ -78,7 +81,7 @@ window.renderProducts = function (filter = 'all') {
                     </svg>
                 </div>
             ` : ''}
-            <img src="${product.image}" alt="${product.name}" class="product-image" loading="lazy">
+            <img src="${displayImage}" alt="${product.name}" class="product-image" loading="lazy">
             <div class="product-info">
                 <div class="product-category">${product.category}</div>
                 <div class="product-name">${product.name}</div>
@@ -109,9 +112,25 @@ window.openProduct = function (id) {
     currentProductId = id;
     currentQuantity = 1;
     window.currentVariant = null; // Reset variant
+    window.currentSlide = 0; // Reset carousel
     window.updateQuantityDisplay();
 
-    modalImage.src = product.image;
+    // Init Carousel
+    const productImages = product.images || [product.image];
+    const track = document.getElementById('carousel-track');
+    const dotsContainer = document.getElementById('carousel-dots');
+
+    track.innerHTML = productImages.map(img => `<img src="${img}" alt="${product.name}">`).join('');
+    dotsContainer.innerHTML = productImages.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="window.goToImage(${i})"></div>`).join('');
+
+    window.updateCarouselUI(); // Set initial state
+
+    // UI controls visibility
+    const navs = document.querySelectorAll('.carousel-nav');
+    const hasMultiple = productImages.length > 1;
+    navs.forEach(nav => nav.style.display = hasMultiple ? 'block' : 'none');
+    dotsContainer.style.display = hasMultiple ? 'flex' : 'none';
+
     modalTitle.textContent = product.name;
     modalCategory.textContent = product.category;
     modalDescription.textContent = product.description;
@@ -200,6 +219,59 @@ window.closeModal = function () {
     currentProductId = null;
     window.currentVariant = null;
 };
+
+// Carousel Logic
+window.currentSlide = 0;
+window.moveCarousel = function (delta) {
+    const product = window.allProducts.find(p => p.id === currentProductId);
+    const images = product.images || [product.image];
+    const count = images.length;
+
+    window.currentSlide = (window.currentSlide + delta + count) % count;
+    window.updateCarouselUI();
+    if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+};
+
+window.goToImage = function (index) {
+    window.currentSlide = index;
+    window.updateCarouselUI();
+};
+
+window.updateCarouselUI = function () {
+    const track = document.getElementById('carousel-track');
+    const dots = document.querySelectorAll('.dot');
+
+    track.style.transform = `translateX(-${window.currentSlide * 100}%)`;
+
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === window.currentSlide);
+    });
+};
+
+// Touch Support for Carousel
+let touchStartX = 0;
+let touchEndX = 0;
+
+modal.addEventListener('touchstart', e => {
+    if (e.target.closest('.modal-carousel')) {
+        touchStartX = e.changedTouches[0].screenX;
+    }
+}, { passive: true });
+
+modal.addEventListener('touchend', e => {
+    if (e.target.closest('.modal-carousel')) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }
+}, { passive: true });
+
+function handleSwipe() {
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) { // Threshold
+        if (diff > 0) window.moveCarousel(1);  // Swipe Left -> Next
+        else window.moveCarousel(-1);           // Swipe Right -> Prev
+    }
+}
 
 window.adjustQuantity = function (delta) {
     const newQty = currentQuantity + delta;
@@ -306,13 +378,19 @@ window.updateCartBadge = function () {
     cartBadge.style.display = count > 0 ? 'flex' : 'none';
 };
 
-// Bot Config
-const BOT_TOKEN = '8391787130:AAF_X5_sODHtWfQK4nNefdlrmlD_wb_E87w';
-const ADMIN_CHAT_ID = '5030636855';
+// Bot Config (Values will be replaced by GitHub Actions during deploy)
+const BOT_TOKEN = '__BOT_TOKEN_PLACEHOLDER__';
+const ADMIN_CHAT_ID = '__ADMIN_CHAT_ID_PLACEHOLDER__';
 
 window.processCheckout = async function () {
     const checkoutBtn = document.querySelector('.btn-checkout');
     if (!checkoutBtn || checkoutBtn.disabled) return;
+
+    if (BOT_TOKEN.includes('PLACEHOLDER')) {
+        console.error('Telegram Bot Token not configured!');
+        alert('Помилка конфігурації бота. Будь ласка, зверніться до адміністратора.');
+        return;
+    }
 
     const total = Object.entries(cart).reduce((sum, [key, qty]) => {
         const [idStr, variant] = key.split('_');

@@ -57,7 +57,10 @@ window.renderProducts = function (filter = 'all') {
 
     productList.innerHTML = filteredProducts.map(product => {
         // Handle images (backward compatibility)
-        const displayImage = (product.images && product.images[0]) || product.image;
+        let displayImage = product.image || 'assets/tea_new.jpg';
+        if (product.images && product.images.length > 0) {
+            displayImage = product.images[0];
+        }
 
         // Price Logic for Card
         let priceDisplay = `${product.price}₴`;
@@ -116,11 +119,18 @@ window.openProduct = function (id) {
     window.updateQuantityDisplay();
 
     // Init Carousel
-    const productImages = product.images || [product.image];
+    let productImages = product.images || [];
+    if (productImages.length === 0 && product.image) {
+        productImages = [product.image];
+    }
+    if (productImages.length === 0) {
+        productImages = ['assets/tea_new.jpg']; // Global fallback
+    }
+
     const track = document.getElementById('carousel-track');
     const dotsContainer = document.getElementById('carousel-dots');
 
-    track.innerHTML = productImages.map(img => `<img src="${img}" alt="${product.name}">`).join('');
+    track.innerHTML = productImages.map(img => `<img src="${img}" alt="${product.name}" onerror="this.src='https://placehold.co/400x400?text=Image+Not+Found'">`).join('');
     dotsContainer.innerHTML = productImages.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="window.goToImage(${i})"></div>`).join('');
 
     window.updateCarouselUI(); // Set initial state

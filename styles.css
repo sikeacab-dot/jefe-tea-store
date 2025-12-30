@@ -71,23 +71,24 @@ header {
 }
 
 .logo {
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
-    font-size: 1.4rem;
-    letter-spacing: 0.5px;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 1.2rem;
+    letter-spacing: 1.5px;
     color: var(--text-primary);
     margin: 0;
-    line-height: 1.1;
+    line-height: 1;
+    text-transform: uppercase;
 }
 
 .subtitle {
-    font-family: 'Playfair Display', serif;
-    font-size: 0.65rem;
+    font-family: var(--font-body);
+    font-size: 0.55rem;
     color: var(--text-secondary);
     text-transform: uppercase;
-    letter-spacing: 2px;
-    font-style: italic;
-    margin-top: 2px;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+    font-weight: 400;
 }
 
 /* Cart Icon */
@@ -103,8 +104,8 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     background: rgba(255, 255, 255, 0.05);
 }
 
@@ -425,16 +426,16 @@ header {
     height: 40px;
     border-radius: 50%;
     color: #FFF;
-    font-size: 2rem;
+    font-size: 2.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 20;
     backdrop-filter: blur(8px);
-    line-height: 1;
-    padding-bottom: 4px;
-    /* Adjust for font-baseline centering */
+    line-height: 0;
+    /* Core fix for centering */
+    padding: 0;
 }
 
 .modal-divider {

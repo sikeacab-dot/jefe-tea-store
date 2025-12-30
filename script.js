@@ -162,61 +162,68 @@ window.openProduct = function (id) {
 
     // Price & Variants Logic
     const vContainer = document.getElementById('modal-variants');
-    vContainer.innerHTML = '';
+    if (vContainer) {
+        vContainer.innerHTML = '';
 
-    if (product.variants) {
-        vContainer.style.display = 'flex';
-        // Sort keys: 50, 100, 200, 250, 357
-        const weights = Object.keys(product.variants).sort((a, b) => Number(a) - Number(b));
+        if (product.variants) {
+            vContainer.style.display = 'flex';
+            // Sort keys: 50, 100, 200, 250, 357
+            const weights = Object.keys(product.variants).sort((a, b) => Number(a) - Number(b));
 
-        weights.forEach(w => {
-            const btn = document.createElement('button');
-            btn.className = 'weight-btn';
-            btn.textContent = `${w}г`;
-            btn.onclick = () => window.setVariant(w);
-            vContainer.appendChild(btn);
-        });
+            weights.forEach(w => {
+                const btn = document.createElement('button');
+                btn.className = 'weight-btn';
+                btn.textContent = `${w}г`;
+                btn.onclick = () => window.setVariant(w);
+                vContainer.appendChild(btn);
+            });
 
-        // Default to 100g if exists, else first
-        if (product.variants['100']) window.setVariant('100');
-        else window.setVariant(weights[0]);
+            // Default to 100g if exists, else first
+            if (product.variants['100']) window.setVariant('100');
+            else window.setVariant(weights[0]);
 
+        } else {
+            // Fixed Price
+            vContainer.style.display = 'none';
+            modalPrice.textContent = `${product.price}₴`;
+        }
     } else {
-        // Fixed Price
-        vContainer.style.display = 'none';
+        // Fallback for modal price if no variants container
         modalPrice.textContent = `${product.price}₴`;
     }
 
     // Brewing Guide
     const brewContainer = document.getElementById('modal-brewing');
-    if (product.brewing) {
-        brewContainer.style.display = 'flex';
-        brewContainer.innerHTML = `
-            <div class="brew-tag" title="Кількість проливів">
-                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 8h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1M6 9v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M6 9l2-5h8l2 5M10.5 14a2.5 2.5 0 1 0 5 0"/>
-                </svg>
-                <span>${product.brewing.steeps}</span>
-            </div>
-            <div class="brew-tag" title="Час заварювання">
-                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <span>${product.brewing.time}с</span>
-            </div>
-            <div class="brew-tag" title="Вага">
-                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 5H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5z"/>
-                    <path d="M12 12h.01"/>
-                    <path d="M12 8v-3"/>
-                </svg>
-                <span>${product.brewing.grams}г</span>
-            </div>
-        `;
-    } else {
-        brewContainer.style.display = 'none';
-        brewContainer.innerHTML = '';
+    if (brewContainer) {
+        if (product.brewing) {
+            brewContainer.style.display = 'flex';
+            brewContainer.innerHTML = `
+                <div class="brew-tag" title="Кількість проливів">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 8h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1M6 9v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M6 9l2-5h8l2 5M10.5 14a2.5 2.5 0 1 0 5 0"/>
+                    </svg>
+                    <span>${product.brewing.steeps}</span>
+                </div>
+                <div class="brew-tag" title="Час заварювання">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span>${product.brewing.time}с</span>
+                </div>
+                <div class="brew-tag" title="Вага">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 5H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5z"/>
+                        <path d="M12 12h.01"/>
+                        <path d="M12 8v-3"/>
+                    </svg>
+                    <span>${product.brewing.grams}г</span>
+                </div>
+            `;
+        } else {
+            brewContainer.style.display = 'none';
+            brewContainer.innerHTML = '';
+        }
     }
 
     modal.classList.add('active');
@@ -249,6 +256,7 @@ window.closeModal = function () {
 window.currentSlide = 0;
 window.moveCarousel = function (delta) {
     const product = window.allProducts.find(p => p.id === currentProductId);
+    if (!product) return;
     const images = product.images || [product.image];
     const count = images.length;
 
@@ -265,6 +273,7 @@ window.goToImage = function (index) {
 window.updateCarouselUI = function () {
     const track = document.getElementById('carousel-track');
     const dots = document.querySelectorAll('.dot');
+    if (!track) return;
 
     track.style.transform = `translateX(-${window.currentSlide * 100}%)`;
 
@@ -308,7 +317,7 @@ window.adjustQuantity = function (delta) {
 };
 
 window.updateQuantityDisplay = function () {
-    quantityDisplay.textContent = currentQuantity;
+    if (quantityDisplay) quantityDisplay.textContent = currentQuantity;
 };
 
 window.addToCart = function (isBuyNow) {
@@ -346,49 +355,62 @@ window.closeConfirmModal = function () {
 window.openCart = function () {
     window.closeConfirmModal(); // Ensure this is closed if open
 
+    // Reset UI visibility
+    const itemsList = document.getElementById('cart-items');
+    const footer = document.querySelector('.checkout-footer');
+    const title = document.getElementById('checkout-title');
+    const success = document.getElementById('checkout-success');
+
+    if (itemsList) itemsList.classList.remove('hidden');
+    if (footer) footer.classList.remove('hidden');
+    if (title) title.classList.remove('hidden');
+    if (success) success.classList.add('hidden');
+
     // Render Cart Items
     const cartEntries = Object.entries(cart);
 
     if (cartEntries.length === 0) {
         // Handle empty cart if needed, or just show empty state
-        cartItemsContainer.innerHTML = '<div class="empty-cart">Кошик порожній</div>';
-        cartTotalDisplay.textContent = '0₴';
+        if (itemsList) itemsList.innerHTML = '<div class="empty-cart">Кошик порожній</div>';
+        if (cartTotalDisplay) cartTotalDisplay.textContent = '0₴';
     } else {
         let total = 0;
-        cartItemsContainer.innerHTML = cartEntries.map(([key, qty]) => {
-            // Parse Key
-            const [idStr, variant] = key.split('_');
-            const id = parseInt(idStr);
+        if (itemsList) {
+            itemsList.innerHTML = cartEntries.map(([key, qty]) => {
+                // Parse Key
+                const [idStr, variant] = key.split('_');
+                const id = parseInt(idStr);
 
-            const product = window.allProducts.find(p => p.id === id);
-            if (!product) return '';
+                const product = window.allProducts.find(p => p.id === id);
+                if (!product) return '';
 
-            // Determine Price
-            let price = product.price;
-            let title = product.name;
+                // Determine Price
+                let price = product.price;
+                let itemTitle = product.name;
 
-            if (variant && product.variants && product.variants[variant]) {
-                price = product.variants[variant];
-                title += ` (${variant}г)`;
-            } else if (variant) {
-                // Legacy or Broken state fallback
-                title += ` (${variant}г)`;
-            }
+                if (variant && product.variants && product.variants[variant]) {
+                    price = product.variants[variant];
+                    itemTitle += ` (${variant}г)`;
+                } else if (variant) {
+                    // Legacy or Broken state fallback
+                    itemTitle += ` (${variant}г)`;
+                }
 
-            const itemTotal = price * qty;
-            total += itemTotal;
-            const cartDisplayImage = (product.images && product.images.length > 0) ? product.images[0] : (product.image || 'assets/tea_new.jpg');
-            return `
-                <div class="cart-item">
-                    <img src="${cartDisplayImage}" class="cart-item-img">
-                    <div class="cart-item-info">
-                        <div class="cart-item-title">${title}</div>
-                        <div class="cart-item-price">${qty} x ${price}₴ = ${itemTotal}₴</div>
+                const itemTotal = price * qty;
+                total += itemTotal;
+                const cartDisplayImage = (product.images && product.images.length > 0) ? product.images[0] : (product.image || 'assets/tea_new.jpg');
+                return `
+                    <div class="cart-item">
+                        <img src="${cartDisplayImage}" class="cart-item-img">
+                        <div class="cart-item-info">
+                            <div class="cart-item-title">${itemTitle}</div>
+                            <div class="cart-item-price">${qty} x ${price}₴ = ${itemTotal}₴</div>
+                        </div>
                     </div>
-                </div>
-            `;
-        }).join('');
-        cartTotalDisplay.textContent = `${total}₴`;
+                `;
+            }).join('');
+        }
+        if (cartTotalDisplay) cartTotalDisplay.textContent = `${total}₴`;
     }
 
     checkoutModal.classList.add('active');
@@ -400,8 +422,10 @@ window.closeCheckout = function () {
 
 window.updateCartBadge = function () {
     const count = Object.values(cart).reduce((a, b) => a + b, 0);
-    cartBadge.textContent = count;
-    cartBadge.style.display = count > 0 ? 'flex' : 'none';
+    if (cartBadge) {
+        cartBadge.textContent = count;
+        cartBadge.style.display = count > 0 ? 'flex' : 'none';
+    }
 };
 
 // Bot Config (Values will be replaced by GitHub Actions during deploy)
@@ -428,19 +452,20 @@ window.processCheckout = async function () {
         return;
     }
 
-    const total = Object.entries(cart).reduce((sum, [key, qty]) => {
+    let total = 0;
+    Object.entries(cart).forEach(([key, qty]) => {
         const [idStr, variant] = key.split('_');
         const id = parseInt(idStr);
-        const p = window.allProducts.find(p => p.id === id);
+        const p = window.allProducts.find(prod => prod.id === id);
 
-        if (!p) return sum;
-
-        let price = p.price;
-        if (variant && p.variants && p.variants[variant]) {
-            price = p.variants[variant];
+        if (p) {
+            let price = p.price;
+            if (variant && p.variants && p.variants[variant]) {
+                price = p.variants[variant];
+            }
+            total += (price * qty);
         }
-        return sum + (price * qty);
-    }, 0);
+    });
 
     const user = tg.initDataUnsafe?.user || {};
     const userName = user.first_name || 'Клієнт';
@@ -470,7 +495,6 @@ window.processCheckout = async function () {
 
     try {
         // Change button state
-        const originalText = checkoutBtn.textContent;
         checkoutBtn.disabled = true;
         checkoutBtn.textContent = 'Надсилаємо...';
         checkoutBtn.style.opacity = '0.7';
@@ -490,19 +514,16 @@ window.processCheckout = async function () {
         if (response.ok) {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 
-            // Show Success State in UI
-            cartItemsContainer.innerHTML = `
-                <div style="text-align:center; padding: 40px 20px;">
-                    <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
-                    <h2 style="margin-bottom: 10px;">Дякуємо!</h2>
-                    <p style="color: rgba(255,255,255,0.6); line-height: 1.5;">
-                        Ваше замовлення успішно надіслано.<br>Ми зв'яжемося з вами найближчим часом.
-                    </p>
-                </div>
-            `;
-            // Hide footer by class (to beat !important in CSS)
+            // Show Success State in UI without overwriting item list
+            const itemsList = document.getElementById('cart-items');
             const footer = document.querySelector('.checkout-footer');
+            const title = document.getElementById('checkout-title');
+            const success = document.getElementById('checkout-success');
+
+            if (itemsList) itemsList.classList.add('hidden');
             if (footer) footer.classList.add('hidden');
+            if (title) title.classList.add('hidden');
+            if (success) success.classList.remove('hidden');
 
             // Clear cart
             cart = {};
@@ -511,17 +532,14 @@ window.processCheckout = async function () {
             // Auto close after 5 seconds
             setTimeout(() => {
                 window.closeCheckout();
-                // Reset UI for next time
-                setTimeout(() => {
-                    if (footer) footer.classList.remove('hidden');
-                    // We don't clear cartItemsContainer here, openCart will do it
-                }, 500);
             }, 5000);
 
         } else {
             console.error('Telegram API Error:', data);
             alert(`Помилка API: ${data.description || 'невідома помилка'}`);
-            throw new Error('API Error');
+            checkoutBtn.disabled = false;
+            checkoutBtn.textContent = 'Оформити замовлення';
+            checkoutBtn.style.opacity = '1';
         }
     } catch (e) {
         console.error('Checkout failed:', e);
@@ -533,14 +551,15 @@ window.processCheckout = async function () {
     }
 };
 
-
 // Event Listeners
 [modal, cartConfirmModal, checkoutModal].forEach(m => {
-    m.addEventListener('click', (e) => {
-        if (e.target === m) {
-            m.classList.remove('active');
-        }
-    });
+    if (m) {
+        m.addEventListener('click', (e) => {
+            if (e.target === m) {
+                m.classList.remove('active');
+            }
+        });
+    }
 });
 
 // Init

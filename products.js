@@ -1,7 +1,7 @@
 const products = [
     {
         "id": 2,
-        "name": "Червоний Дракон Пуер Цегла",
+        "name": "Червоний Дракон Пуер",
         "category": "Oolong",
         "price": 450,
         "variants": null,

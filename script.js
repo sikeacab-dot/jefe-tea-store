@@ -511,6 +511,7 @@ window.processCheckout = async function () {
         }
     } catch (e) {
         console.error('Checkout failed:', e);
+        alert(`Помилка запиту: ${e.message}`);
         checkoutBtn.disabled = false;
         checkoutBtn.textContent = 'Помилка. Спробуйте ще раз';
         checkoutBtn.style.background = '#ff4444';

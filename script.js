@@ -7,7 +7,7 @@ try {
     console.error('Telegram init failed:', e);
 }
 
-// State
+// State Management
 window.allProducts = (function () {
     const stored = localStorage.getItem('jefe_products');
     if (stored) {
@@ -25,150 +25,139 @@ let cart = {};
 let currentProductId = null;
 let currentQuantity = 1;
 
-// DOM Elements
-const productList = document.getElementById('product-list');
-const modal = document.getElementById('product-modal');
-const modalTitle = document.getElementById('modal-title');
-const modalPrice = document.getElementById('modal-price');
-const modalCategory = document.getElementById('modal-category');
-const modalDescription = document.getElementById('modal-description');
-const quantityDisplay = document.getElementById('quantity-display');
+// Core UI Reset & Initialization
+window.resetCheckoutUI = function () {
+    const items = document.getElementById('cart-items');
+    const footer = document.querySelector('.checkout-footer');
+    const title = document.getElementById('checkout-title');
+    const success = document.getElementById('checkout-success');
+    const btn = document.getElementById('checkout-btn');
 
-const cartConfirmModal = document.getElementById('cart-confirm-modal');
-const checkoutModal = document.getElementById('checkout-modal');
-const cartItemsContainer = document.getElementById('cart-items');
-const cartTotalDisplay = document.getElementById('cart-total');
-const cartBadge = document.getElementById('cart-badge');
+    // Show products, hide success
+    if (items) items.classList.remove('hidden');
+    if (footer) footer.classList.remove('hidden');
+    if (title) title.classList.remove('hidden');
+    if (success) success.classList.add('hidden');
 
-// Global Functions
+    // Reset Button
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Оформити замовлення';
+        btn.style.opacity = '1';
+        btn.style.background = ''; // In case it was red from error
+    }
+
+    // Reset Inputs
+    const phoneInput = document.getElementById('order-phone');
+    if (phoneInput) {
+        // We might want to KEEP the phone number for convenience, or clear it.
+        // Let's keep it but ensure it's not disabled.
+        phoneInput.disabled = false;
+    }
+};
+
+// Functions
 window.renderProducts = function (filter = 'all') {
-    const filteredProducts = filter === 'all'
-        ? window.allProducts
-        : window.allProducts.filter(p => p.category === filter);
+    const list = document.getElementById('product-list');
+    if (!list) return;
 
-    productList.innerHTML = filteredProducts.map(product => {
-        let displayImage = product.image || 'assets/tea_new.jpg';
-        if (product.images && product.images.length > 0) {
-            displayImage = product.images[0];
+    const filtered = filter === 'all' ? window.allProducts : window.allProducts.filter(p => p.category === filter);
+
+    list.innerHTML = filtered.map(p => {
+        const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'assets/tea_new.jpg');
+        let price = `${p.price}₴`;
+        if (p.variants) {
+            const v = p.variants['100'] || Object.values(p.variants)[0];
+            price = `${v}₴`;
         }
-
-        let priceDisplay = `${product.price}₴`;
-        if (product.variants) {
-            if (product.variants['100']) {
-                priceDisplay = `${product.variants['100']}₴`;
-            } else {
-                const vals = Object.values(product.variants);
-                const min = Math.min(...vals);
-                priceDisplay = `${min}₴`;
-            }
-        }
-
         return `
-        <div class="product-card" onclick="window.openProduct(${product.id})">
-            ${product.badge === 'fire' ? `
-                <div class="product-badge">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.48 13.03c-.32-.8-.82-1.53-1.48-2.14-.52-.47-.91-.97-1.2-1.5-.67-.86-.99-1.83-1.13-2.79-.33-2.39 1.67-4.38 4.07-4.71-.77-.13-1.56-.08-2.33.12-2.36.42-3.8 2.65-3.21 4.98-2.58.55-4.48 2.82-4.48 5.67 0 .2.02.4.05.6-.24.05-.44.05-.69.05-1.19-.19-2.27-.75-2.99-1.65-1.78 2.52-1.25 5.94.03 8.97 1.67 3.96 6.28 5.85 10.22 4.19 2.15-.91 3.67-2.68 4.25-4.78.2-.74.32-1.51.25-2.29-.05-.77-.35-1.39-1.02-1.74l-.34.02z" /></svg>
-                </div>
-            ` : ''}
-            <img src="${displayImage}" alt="${product.name}" class="product-image" loading="lazy">
+        <div class="product-card" onclick="window.openProduct(${p.id})">
+            ${p.badge === 'fire' ? '<div class="product-badge"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.48 13.03c-.32-.8-.82-1.53-1.48-2.14-.52-.47-.91-.97-1.2-1.5-.67-.86-.99-1.83-1.13-2.79-.33-2.39 1.67-4.38 4.07-4.71-.77-.13-1.56-.08-2.33.12-2.36.42-3.8 2.65-3.21 4.98-2.58.55-4.48 2.82-4.48 5.67 0 .2.02.4.05.6-.24.05-.44.05-.69.05-1.19-.19-2.27-.75-2.99-1.65-1.78 2.52-1.25 5.94.03 8.97 1.67 3.96 6.28 5.85 10.22 4.19 2.15-.91 3.67-2.68 4.25-4.78.2-.74.32-1.51.25-2.29-.05-.77-.35-1.39-1.02-1.74l-.34.02z"/></svg></div>' : ''}
+            <img src="${img}" alt="${p.name}" class="product-image" loading="lazy">
             <div class="product-info">
-                <div class="product-category">${product.category}</div>
-                <div class="product-name">${product.name}</div>
-                <div class="product-price">${priceDisplay}</div>
+                <div class="product-category">${p.category}</div>
+                <div class="product-name">${p.name}</div>
+                <div class="product-price">${price}</div>
                 <button class="btn-mini-add">Додати</button>
             </div>
         </div>`;
     }).join('');
 };
 
-window.filterCategory = function (category) {
-    document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${category}'`));
-    });
-    window.renderProducts(category);
+window.filterCategory = function (cat) {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes(`'${cat}'`)));
+    window.renderProducts(cat);
     if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
 };
 
 window.openProduct = function (id) {
-    const product = window.allProducts.find(p => p.id === id);
-    if (!product) return;
+    const p = window.allProducts.find(x => x.id === id);
+    if (!p) return;
+    currentProductId = id; currentQuantity = 1; window.currentVariant = null; window.currentSlide = 0;
 
-    currentProductId = id;
-    currentQuantity = 1;
-    window.currentVariant = null;
-    window.currentSlide = 0;
     window.updateQuantityDisplay();
 
-    let productImages = (product.images && product.images.length > 0) ? product.images : [product.image || 'assets/tea_new.jpg'];
-
+    // Carousel
+    const images = (p.images && p.images.length > 0) ? p.images : [p.image || 'assets/tea_new.jpg'];
     const track = document.getElementById('carousel-track');
-    const dotsContainer = document.getElementById('carousel-dots');
-    if (track) {
-        track.innerHTML = productImages.map(img => `<img src="${img}" alt="${product.name}" onerror="this.src='https://placehold.co/400x400?text=Tea+Image'">`).join('');
-    }
-
-    const hasMultiple = productImages.length > 1;
-    if (dotsContainer) {
-        dotsContainer.innerHTML = hasMultiple ? productImages.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="window.goToImage(${i})"></div>`).join('') : '';
-    }
+    const dots = document.getElementById('carousel-dots');
+    if (track) track.innerHTML = images.map(img => `<img src="${img}" onerror="this.src='https://placehold.co/400x400?text=Tea+Image'">`).join('');
+    if (dots) dots.innerHTML = images.length > 1 ? images.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="window.goToImage(${i})"></div>`).join('') : '';
 
     window.updateCarouselUI();
-    document.querySelectorAll('.carousel-nav').forEach(nav => nav.style.display = hasMultiple ? 'block' : 'none');
+    document.querySelectorAll('.carousel-nav').forEach(n => n.style.display = images.length > 1 ? 'block' : 'none');
 
-    if (modalTitle) modalTitle.textContent = product.name;
-    if (modalCategory) modalCategory.textContent = product.category;
-    if (modalDescription) modalDescription.textContent = product.description;
+    document.getElementById('modal-title').textContent = p.name;
+    document.getElementById('modal-category').textContent = p.category;
+    document.getElementById('modal-description').textContent = p.description;
 
-    const vContainer = document.getElementById('modal-variants');
-    if (vContainer) {
-        vContainer.innerHTML = '';
-        if (product.variants) {
-            vContainer.style.display = 'flex';
-            const weights = Object.keys(product.variants).sort((a, b) => Number(a) - Number(b));
-            weights.forEach(w => {
-                const btn = document.createElement('button');
-                btn.className = 'weight-btn';
-                btn.textContent = `${w}г`;
-                btn.onclick = () => window.setVariant(w);
-                vContainer.appendChild(btn);
+    const vCont = document.getElementById('modal-variants');
+    if (vCont) {
+        vCont.innerHTML = '';
+        if (p.variants) {
+            vCont.style.display = 'flex';
+            const ws = Object.keys(p.variants).sort((a, b) => Number(a) - Number(b));
+            ws.forEach(w => {
+                const b = document.createElement('button');
+                b.className = 'weight-btn'; b.textContent = `${w}г`;
+                b.onclick = () => window.setVariant(w);
+                vCont.appendChild(b);
             });
-            window.setVariant(product.variants['100'] ? '100' : weights[0]);
+            window.setVariant(p.variants['100'] ? '100' : ws[0]);
         } else {
-            vContainer.style.display = 'none';
-            if (modalPrice) modalPrice.textContent = `${product.price}₴`;
+            vCont.style.display = 'none';
+            document.getElementById('modal-price').textContent = `${p.price}₴`;
         }
     }
 
-    const brewContainer = document.getElementById('modal-brewing');
-    if (brewContainer) {
-        if (product.brewing) {
-            brewContainer.style.display = 'flex';
-            brewContainer.innerHTML = `
-                <div class="brew-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 8h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1M6 9v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M6 9l2-5h8l2 5M10.5 14a2.5 2.5 0 1 0 5 0"/></svg><span>${product.brewing.steeps}</span></div>
-                <div class="brew-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>${product.brewing.time}с</span></div>
-                <div class="brew-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 5H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5z"/><path d="M12 12h.01"/><path d="M12 8v-3"/></svg><span>${product.brewing.grams}г</span></div>`;
-        } else {
-            brewContainer.style.display = 'none';
-        }
+    const brew = document.getElementById('modal-brewing');
+    if (brew) {
+        if (p.brewing) {
+            brew.style.display = 'flex';
+            brew.innerHTML = `
+                <div class="brew-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 8h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1M6 9v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M6 9l2-5h8l2 5M10.5 14a2.5 2.5 0 1 0 5 0"/></svg><span>${p.brewing.steeps}</span></div>
+                <div class="brew-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>${p.brewing.time}с</span></div>
+                <div class="brew-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 5H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5z"/><path d="M12 12h.01"/><path d="M12 8v-3"/></svg><span>${p.brewing.grams}г</span></div>`;
+        } else brew.style.display = 'none';
     }
 
-    if (modal) modal.classList.add('active');
+    document.getElementById('product-modal')?.classList.add('active');
     if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 };
 
-window.setVariant = function (weight) {
+window.setVariant = function (w) {
     const p = window.allProducts.find(x => x.id === currentProductId);
-    if (!p || !p.variants[weight]) return;
-    window.currentVariant = weight;
-    if (modalPrice) modalPrice.textContent = `${p.variants[weight]}₴`;
-    document.querySelectorAll('.weight-btn').forEach(btn => btn.classList.toggle('active', btn.textContent === `${weight}г`));
+    if (!p || !p.variants[w]) return;
+    window.currentVariant = w;
+    document.getElementById('modal-price').textContent = `${p.variants[w]}₴`;
+    document.querySelectorAll('.weight-btn').forEach(b => b.classList.toggle('active', b.textContent === `${w}г`));
 };
 
-window.closeModal = function () { if (modal) modal.classList.remove('active'); };
+window.closeModal = function () { document.getElementById('product-modal')?.classList.remove('active'); };
 window.updateCarouselUI = function () {
-    const track = document.getElementById('carousel-track');
-    if (track) track.style.transform = `translateX(-${window.currentSlide * 100}%)`;
-    document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === window.currentSlide));
+    const t = document.getElementById('carousel-track');
+    if (t) t.style.transform = `translateX(-${window.currentSlide * 100}%)`;
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === window.currentSlide));
 };
 window.moveCarousel = function (d) {
     const p = window.allProducts.find(x => x.id === currentProductId);
@@ -180,109 +169,95 @@ window.goToImage = function (i) { window.currentSlide = i; window.updateCarousel
 
 window.adjustQuantity = function (d) {
     const n = currentQuantity + d;
-    if (n >= 1 && n <= 50) {
-        currentQuantity = n;
-        window.updateQuantityDisplay();
-        if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-    }
+    if (n >= 1 && n <= 50) { currentQuantity = n; window.updateQuantityDisplay(); if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged(); }
 };
-window.updateQuantityDisplay = function () { if (quantityDisplay) quantityDisplay.textContent = currentQuantity; };
+window.updateQuantityDisplay = function () { if (document.getElementById('quantity-display')) document.getElementById('quantity-display').textContent = currentQuantity; };
 
 window.addToCart = function (buyNow) {
     if (!currentProductId) return;
-    let key = String(currentProductId);
-    if (window.currentVariant) key += `_${window.currentVariant}`;
-    cart[key] = (cart[key] || 0) + currentQuantity;
-    window.closeModal();
-    window.updateCartBadge();
+    let k = String(currentProductId); if (window.currentVariant) k += `_${window.currentVariant}`;
+    cart[k] = (cart[k] || 0) + currentQuantity;
+    window.closeModal(); window.updateCartBadge();
     if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-    if (buyNow) window.openCart();
-    else window.openConfirmModal();
+    if (buyNow) window.openCart(); else document.getElementById('cart-confirm-modal')?.classList.add('active');
 };
 
-window.openConfirmModal = function () { if (cartConfirmModal) cartConfirmModal.classList.add('active'); };
-window.closeConfirmModal = function () { if (cartConfirmModal) cartConfirmModal.classList.remove('active'); };
+window.closeConfirmModal = function () { document.getElementById('cart-confirm-modal')?.classList.remove('active'); };
 
 window.openCart = function () {
     window.closeConfirmModal();
+    window.resetCheckoutUI(); // FORCED RESET ON EVERY OPEN
 
-    // RESET UI STATES
-    const items = document.getElementById('cart-items');
-    const footer = document.querySelector('.checkout-footer');
-    const title = document.getElementById('checkout-title');
-    const success = document.getElementById('checkout-success');
-    const btn = document.querySelector('.btn-checkout');
-
-    if (items) items.classList.remove('hidden');
-    if (footer) footer.classList.remove('hidden');
-    if (title) title.classList.remove('hidden');
-    if (success) success.classList.add('hidden');
-
-    if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Оформити замовлення';
-        btn.style.opacity = '1';
-        btn.style.background = '';
-    }
-
+    const list = document.getElementById('cart-items');
     const entries = Object.entries(cart);
+
     if (entries.length === 0) {
-        if (items) items.innerHTML = '<div class="empty-cart">Кошик порожній</div>';
-        if (cartTotalDisplay) cartTotalDisplay.textContent = '0₴';
+        if (list) list.innerHTML = '<div class="empty-cart">Кошик порожній</div>';
+        if (document.getElementById('cart-total')) document.getElementById('cart-total').textContent = '0₴';
     } else {
         let total = 0;
-        if (items) {
-            items.innerHTML = entries.map(([k, q]) => {
-                const [id, v] = k.split('_');
-                const p = window.allProducts.find(x => x.id === parseInt(id));
-                if (!p) return '';
-                let price = v ? p.variants[v] : p.price;
+        let html = '';
+        entries.forEach(([k, q]) => {
+            const [id, v] = k.split('_');
+            const p = window.allProducts.find(x => x.id === parseInt(id));
+            if (p) {
+                // Safety Variant Check
+                let price = p.price;
+                let title = p.name;
+                if (v && p.variants && p.variants[v]) {
+                    price = p.variants[v];
+                    title += ` (${v}г)`;
+                } else if (v) {
+                    title += ` (${v}г)`; // Fallback display if variant removed but in cart
+                }
                 total += (price * q);
                 const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'assets/tea_new.jpg');
-                return `
+                html += `
                 <div class="cart-item">
                     <img src="${img}" class="cart-item-img">
                     <div class="cart-item-info">
-                        <div class="cart-item-title">${p.name}${v ? ' (' + v + 'г)' : ''}</div>
+                        <div class="cart-item-title">${title}</div>
                         <div class="cart-item-price">${q} x ${price}₴ = ${price * q}₴</div>
                     </div>
                 </div>`;
-            }).join('');
-        }
-        if (cartTotalDisplay) cartTotalDisplay.textContent = `${total}₴`;
+            }
+        });
+        if (list) list.innerHTML = html;
+        if (document.getElementById('cart-total')) document.getElementById('cart-total').textContent = `${total}₴`;
     }
-    if (checkoutModal) checkoutModal.classList.add('active');
+    document.getElementById('checkout-modal')?.classList.add('active');
 };
 
-window.closeCheckout = function () { if (checkoutModal) checkoutModal.classList.remove('active'); };
+window.closeCheckout = function () { document.getElementById('checkout-modal')?.classList.remove('active'); };
 
 window.updateCartBadge = function () {
     const c = Object.values(cart).reduce((a, b) => a + b, 0);
-    if (cartBadge) {
-        cartBadge.textContent = c;
-        cartBadge.style.display = c > 0 ? 'flex' : 'none';
-    }
+    const b = document.getElementById('cart-badge');
+    if (b) { b.textContent = c; b.style.display = c > 0 ? 'flex' : 'none'; }
 };
 
 const BOT_TOKEN = '__BOT_TOKEN_PLACEHOLDER__'.trim().replace(/^"|"$/g, '');
 const ADMIN_CHAT_ID = '__ADMIN_CHAT_ID_PLACEHOLDER__'.trim().replace(/^"|"$/g, '');
 
 window.processCheckout = async function () {
-    const btn = document.querySelector('.btn-checkout');
+    const btn = document.getElementById('checkout-btn');
     if (!btn || btn.disabled) return;
 
     const phone = document.getElementById('order-phone')?.value.trim();
-    if (!phone) { alert('Будь ласка, введіть телефон!'); document.getElementById('order-phone')?.focus(); return; }
+    if (!phone) { alert('Введіть номер телефону!'); return; }
 
-    let total = 0;
-    let list = [];
+    btn.disabled = true;
+    btn.textContent = 'Надсилаємо...';
+    btn.style.opacity = '0.7';
+
+    let total = 0; let items = [];
     Object.entries(cart).forEach(([k, q]) => {
         const [id, v] = k.split('_');
         const p = window.allProducts.find(x => x.id === parseInt(id));
         if (p) {
-            let price = v ? p.variants[v] : p.price;
+            let price = (v && p.variants) ? p.variants[v] : p.price;
             total += (price * q);
-            list.push(`• ${p.name}${v ? ' (' + v + 'г)' : ''} x${q}`);
+            items.push(`• ${p.name}${v ? ' (' + v + 'г)' : ''} x${q}`);
         }
     });
 
@@ -290,13 +265,11 @@ window.processCheckout = async function () {
     let msg = `<b>📦 Нове замовлення!</b>\n\n`;
     msg += `👤 <b>Клієнт:</b> ${u.first_name || 'Клієнт'} (${u.username ? '@' + u.username : 'немає'})\n`;
     msg += `📞 <b>Контакт:</b> ${phone} (${document.querySelector('input[name="messenger"]:checked')?.value || 'Telegram'})\n\n`;
-    msg += `🛒 <b>Товари:</b>\n${list.join('\n')}\n\n💰 <b>Сума:</b> ${total}₴`;
+    msg += `🛒 <b>Товари:</b>\n${items.join('\n')}\n\n💰 <b>Сума:</b> ${total}₴`;
 
     try {
-        btn.disabled = true; btn.textContent = 'Надсилаємо...'; btn.style.opacity = '0.7';
         const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: msg, parse_mode: 'HTML' })
         });
         if (res.ok) {
@@ -314,6 +287,12 @@ window.processCheckout = async function () {
     }
 };
 
+// Modals Background Close
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
+});
+
+// Initialization
 window.renderProducts();
 window.updateCartBadge();
 tg.ready();

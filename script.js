@@ -1,5 +1,5 @@
 /**
- * ZEN ARCHITECTURE v4.9
+ * ZEN ARCHITECTURE v5.0
  * Clean code, original branding, mobile-first fixes.
  */
 
@@ -13,7 +13,7 @@ const ZenState = {
         return products;
     })(),
     cart: {},
-    current: { productId: null, variant: null, qty: 1, slide: 0, checkoutTimeout: null }
+    current: { productId: null, variant: null, qty: 1, slide: 0 }
 };
 
 const ZenUI = {
@@ -57,7 +57,6 @@ const ZenUI = {
     openProduct(id) {
         const p = ZenState.products.find(x => x.id === id);
         if (!p) return;
-        if (ZenState.current.checkoutTimeout) { clearTimeout(ZenState.current.checkoutTimeout); ZenState.current.checkoutTimeout = null; }
         ZenState.current = { ...ZenState.current, productId: id, variant: null, qty: 1, slide: 0 };
 
         document.getElementById('modal-title').textContent = p.name;
@@ -141,7 +140,6 @@ const ZenUI = {
     },
 
     openCart() {
-        if (ZenState.current.checkoutTimeout) { clearTimeout(ZenState.current.checkoutTimeout); ZenState.current.checkoutTimeout = null; }
         this.closeModals();
 
         // Robust Visibility Reset
@@ -232,12 +230,7 @@ const ZenUI = {
                 document.getElementById('cart-items').classList.add('hidden');
                 document.getElementById('checkout-footer').classList.add('hidden');
                 document.getElementById('checkout-title').classList.add('hidden');
-                document.getElementById('checkout-success').classList.remove('hidden');
                 ZenState.cart = {}; this.updateBadge();
-                ZenState.current.checkoutTimeout = setTimeout(() => {
-                    document.getElementById('checkout-modal').classList.remove('active');
-                    ZenState.current.checkoutTimeout = null;
-                }, 4000);
             } else throw new Error();
         } catch (e) {
             btn.disabled = false; btn.textContent = 'Помилка'; btn.style.background = '#ff4444';

@@ -34,8 +34,14 @@ window.resetCheckoutUI = function () {
     const btn = document.getElementById('checkout-btn');
 
     // Show products, hide success
-    if (items) items.classList.remove('hidden');
-    if (footer) footer.classList.remove('hidden');
+    if (items) {
+        items.classList.remove('hidden');
+        items.style.display = ''; // Clear inline styles if any
+    }
+    if (footer) {
+        footer.classList.remove('hidden');
+        footer.style.display = '';
+    }
     if (title) title.classList.remove('hidden');
     if (success) success.classList.add('hidden');
 
@@ -44,15 +50,13 @@ window.resetCheckoutUI = function () {
         btn.disabled = false;
         btn.textContent = 'Оформити замовлення';
         btn.style.opacity = '1';
-        btn.style.background = ''; // In case it was red from error
+        btn.style.background = '';
     }
 
-    // Reset Inputs
-    const phoneInput = document.getElementById('order-phone');
-    if (phoneInput) {
-        // We might want to KEEP the phone number for convenience, or clear it.
-        // Let's keep it but ensure it's not disabled.
-        phoneInput.disabled = false;
+    // Ensure success message is cleared from innerHTML if we replaced it (legacy fix cleanup)
+    if (success && success.querySelector('.success-content')) {
+        // success content is static in HTML now, so no need to clear it, 
+        // but we ensure it's hidden.
     }
 };
 
@@ -186,46 +190,57 @@ window.closeConfirmModal = function () { document.getElementById('cart-confirm-m
 
 window.openCart = function () {
     window.closeConfirmModal();
-    window.resetCheckoutUI(); // FORCED RESET ON EVERY OPEN
+    window.resetCheckoutUI();
 
-    const list = document.getElementById('cart-items');
     const entries = Object.entries(cart);
+    console.log('Opening cart with entries:', entries);
 
     if (entries.length === 0) {
-        if (list) list.innerHTML = '<div class="empty-cart">Кошик порожній</div>';
-        if (document.getElementById('cart-total')) document.getElementById('cart-total').textContent = '0₴';
+        if (cartItemsContainer) cartItemsContainer.innerHTML = '<div class="empty-cart">Кошик порожній</div>';
+        if (cartTotalDisplay) cartTotalDisplay.textContent = '0₴';
     } else {
         let total = 0;
         let html = '';
-        entries.forEach(([k, q]) => {
-            const [id, v] = k.split('_');
-            const p = window.allProducts.find(x => x.id === parseInt(id));
-            if (p) {
-                // Safety Variant Check
-                let price = p.price;
-                let title = p.name;
-                if (v && p.variants && p.variants[v]) {
-                    price = p.variants[v];
-                    title += ` (${v}г)`;
-                } else if (v) {
-                    title += ` (${v}г)`; // Fallback display if variant removed but in cart
+
+        for (const [key, qty] of entries) {
+            const parts = key.split('_');
+            const id = parseInt(parts[0]);
+            const variant = parts[1]; // might be undefined
+
+            const product = window.allProducts.find(p => p.id === id);
+            if (product) {
+                let price = product.price;
+                let displayTitle = product.name;
+
+                if (variant && product.variants && product.variants[variant]) {
+                    price = product.variants[variant];
+                    displayTitle += ` (${variant}г)`;
+                } else if (variant) {
+                    displayTitle += ` (${variant}г)`;
                 }
-                total += (price * q);
-                const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'assets/tea_new.jpg');
+
+                total += (price * qty);
+                const img = (product.images && product.images.length > 0) ? product.images[0] : (product.image || 'assets/tea_new.jpg');
+
                 html += `
                 <div class="cart-item">
                     <img src="${img}" class="cart-item-img">
                     <div class="cart-item-info">
-                        <div class="cart-item-title">${title}</div>
-                        <div class="cart-item-price">${q} x ${price}₴ = ${price * q}₴</div>
+                        <div class="cart-item-title">${displayTitle}</div>
+                        <div class="cart-item-price">${qty} x ${price}₴ = ${price * qty}₴</div>
                     </div>
                 </div>`;
             }
-        });
-        if (list) list.innerHTML = html;
-        if (document.getElementById('cart-total')) document.getElementById('cart-total').textContent = `${total}₴`;
+        }
+
+        if (cartItemsContainer) {
+            cartItemsContainer.innerHTML = html;
+            console.log('Cart HTML updated, length:', html.length);
+        }
+        if (cartTotalDisplay) cartTotalDisplay.textContent = `${total}₴`;
     }
-    document.getElementById('checkout-modal')?.classList.add('active');
+
+    if (checkoutModal) checkoutModal.classList.add('active');
 };
 
 window.closeCheckout = function () { document.getElementById('checkout-modal')?.classList.remove('active'); };

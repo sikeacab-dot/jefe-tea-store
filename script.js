@@ -500,19 +500,21 @@ window.processCheckout = async function () {
                     </p>
                 </div>
             `;
-            document.querySelector('.checkout-footer').style.display = 'none';
+            // Hide footer by class (to beat !important in CSS)
+            const footer = document.querySelector('.checkout-footer');
+            if (footer) footer.classList.add('hidden');
 
             // Clear cart
             cart = {};
             window.updateCartBadge();
 
-            // Auto close after 3 seconds or allow manual close
+            // Auto close after 5 seconds
             setTimeout(() => {
                 window.closeCheckout();
                 // Reset UI for next time
                 setTimeout(() => {
-                    const footer = document.querySelector('.checkout-footer');
-                    if (footer) footer.style.display = ''; // Revert to CSS value (block !important)
+                    if (footer) footer.classList.remove('hidden');
+                    // We don't clear cartItemsContainer here, openCart will do it
                 }, 500);
             }, 5000);
 

@@ -685,9 +685,15 @@ h1 {
 .checkout-footer {
     border-top: 1px solid var(--border-color);
     padding-top: 20px;
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
     width: 100% !important;
     box-sizing: border-box;
+    gap: 0;
+}
+
+.hidden {
+    display: none !important;
 }
 
 .checkout-footer>* {

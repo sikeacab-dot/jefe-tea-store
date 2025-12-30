@@ -65,22 +65,29 @@ header {
     flex-shrink: 0;
 }
 
-h1 {
-    font-family: var(--font-heading);
-    font-weight: 800;
-    font-size: 1.5rem;
-    letter-spacing: 1px;
+.logo-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
     color: var(--text-primary);
-    /* White */
     margin: 0;
-    text-transform: uppercase;
+    line-height: 1.1;
 }
 
 .subtitle {
-    font-size: 0.7rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.65rem;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 2px;
+    font-style: italic;
+    margin-top: 2px;
 }
 
 /* Cart Icon */
@@ -96,10 +103,14 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
     background: rgba(255, 255, 255, 0.05);
-    /* Slight background to emphasize shape */
+}
+
+.cart-icon-wrapper svg {
+    width: 20px;
+    height: 20px;
 }
 
 .cart-icon-wrapper:active {
@@ -414,13 +425,16 @@ h1 {
     height: 40px;
     border-radius: 50%;
     color: #FFF;
-    font-size: 1.8rem;
+    font-size: 2rem;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 20;
     backdrop-filter: blur(8px);
+    line-height: 1;
+    padding-bottom: 4px;
+    /* Adjust for font-baseline centering */
 }
 
 .modal-divider {

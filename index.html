@@ -4,14 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zen Tea Store</title>
+    <title>JEFE TEASTORE</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=4.0">
+    <link rel="stylesheet" href="styles.css?v=4.2">
 </head>
 
 <body>
@@ -19,7 +19,7 @@
         <div class="header-content">
             <div class="header-top">
                 <div class="logo">JEFE TEASTORE</div>
-                <div class="cart-container" onclick="ZenUI.openCart()">
+                <div class="cart-icon-wrapper" onclick="ZenUI.openCart()">
                     <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
@@ -29,11 +29,8 @@
                     <span id="cart-badge" class="cart-badge">0</span>
                 </div>
             </div>
-            <div class="header-title">
-                <h1>ДОБРОГО ТЕА</h1>
-            </div>
         </div>
-        <div class="category-tabs">
+        <div class="category-scroll">
             <button class="cat-btn active" onclick="ZenUI.filterCatalog('all', this)">Усі</button>
             <button class="cat-btn" onclick="ZenUI.filterCatalog('Puerh', this)">Пуер</button>
             <button class="cat-btn" onclick="ZenUI.filterCatalog('Oolong', this)">Улун</button>
@@ -45,53 +42,46 @@
 
     <div class="container">
         <div id="product-list" class="product-grid">
-            <!-- Products will be injected here -->
+            <!-- Products injected by JS -->
         </div>
     </div>
+
+    <!-- Modals -->
 
     <!-- Product Details Modal -->
     <div id="product-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal" onclick="ZenUI.closeModals()">&times;</button>
-            <!-- Image Carousel -->
             <div class="modal-carousel">
-                <div id="carousel-track" class="carousel-track">
-                    <!-- Images injected here -->
-                </div>
+                <div id="carousel-track" class="carousel-track"></div>
                 <button class="carousel-nav prev" onclick="ZenUI.moveCarousel(-1)">&#10094;</button>
                 <button class="carousel-nav next" onclick="ZenUI.moveCarousel(1)">&#10095;</button>
                 <div id="carousel-dots" class="carousel-dots"></div>
             </div>
-
             <div class="modal-body">
                 <div class="modal-header">
-                    <div id="modal-category" class="product-category" style="margin-bottom: 5px;"></div>
+                    <div id="modal-category" class="product-category"></div>
                     <h2 id="modal-title" class="modal-title"></h2>
                     <div id="modal-price" class="modal-price"></div>
                 </div>
-
                 <div id="modal-variants" class="weight-options"></div>
                 <div class="modal-divider"></div>
                 <p id="modal-description" class="modal-description"></p>
-
-                <!-- Brewing Guide -->
                 <div id="modal-brewing" class="brewing-guide"></div>
-
                 <div class="quantity-control">
                     <button class="btn-circle" onclick="ZenUI.adjustQty(-1)">-</button>
                     <span id="modal-qty">1</span>
                     <button class="btn-circle" onclick="ZenUI.adjustQty(1)">+</button>
                 </div>
-
                 <div class="modal-actions">
-                    <button class="btn-primary" onclick="ZenUI.addToCart(false)">У Кошик</button>
-                    <button class="btn-secondary" onclick="ZenUI.addToCart(true)">Купити Зараз</button>
+                    <button class="btn-primary" onclick="ZenUI.addToCart(false)">Додати у кошик</button>
+                    <button class="btn-secondary" onclick="ZenUI.addToCart(true)">Купити зараз</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Add to Cart Confirmation Modal -->
+    <!-- Confirm Modal -->
     <div id="cart-confirm-modal" class="modal-overlay center-modal">
         <div class="modal-content-center">
             <h3>Товар додано!</h3>
@@ -102,68 +92,48 @@
         </div>
     </div>
 
-    <!-- Checkout Modal -->
+    <!-- Cart Modal -->
     <div id="checkout-modal" class="modal-overlay">
         <div class="modal-content full-height">
             <button class="close-modal" onclick="ZenUI.closeModals()">&times;</button>
             <div class="checkout-body">
                 <h2 id="checkout-title">Ваш Кошик</h2>
-
                 <div id="cart-items" class="cart-items-list"></div>
-
-                <!-- Success Message -->
                 <div id="checkout-success" class="hidden">
                     <div class="success-content">
                         <div class="success-icon">✅</div>
                         <h2>Дякуємо!</h2>
-                        <p>Ваше замовлення успішно надіслано.</p>
+                        <p>Ваше замовлення надіслано менеджеру.</p>
                     </div>
                 </div>
-
                 <div id="checkout-footer" class="checkout-footer">
-                    <div class="total-row">
-                        <span>Разом:</span>
-                        <span id="cart-total">0₴</span>
-                    </div>
-
+                    <div class="total-row"><span>Разом:</span><span id="cart-total">0₴</span></div>
                     <div class="checkout-contact-form">
                         <div class="form-group">
                             <label>Ваш месенджер для зв'язку:</label>
                             <div class="messenger-selector">
-                                <label class="messenger-option">
-                                    <input type="radio" name="order-messenger" value="Telegram" checked>
-                                    <span class="messenger-box">Telegram</span>
-                                </label>
-                                <label class="messenger-option">
-                                    <input type="radio" name="order-messenger" value="Viber">
-                                    <span class="messenger-box">Viber</span>
-                                </label>
-                                <label class="messenger-option">
-                                    <input type="radio" name="order-messenger" value="WhatsApp">
-                                    <span class="messenger-box">WhatsApp</span>
-                                </label>
+                                <label class="messenger-option"><input type="radio" name="order-messenger"
+                                        value="Telegram" checked><span class="messenger-box">Telegram</span></label>
+                                <label class="messenger-option"><input type="radio" name="order-messenger"
+                                        value="Viber"><span class="messenger-box">Viber</span></label>
+                                <label class="messenger-option"><input type="radio" name="order-messenger"
+                                        value="WhatsApp"><span class="messenger-box">WhatsApp</span></label>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="order-phone">Номер телефону:</label>
-                            <input type="tel" id="order-phone" class="form-input" placeholder="+380..." required>
+                            <label>Номер телефону:</label>
+                            <input type="tel" id="order-phone" class="form-input" placeholder="+380...">
                         </div>
                     </div>
-
-                    <div class="checkout-instruction">
-                        <p>Натискаючи кнопку нижче, ви надішлете замовлення менеджеру.</p>
-                    </div>
-
-                    <button id="checkout-submit-btn" class="btn-primary" onclick="ZenUI.processCheckout()">
-                        Оформити замовлення
-                    </button>
+                    <button id="checkout-submit-btn" class="btn-primary" onclick="ZenUI.processCheckout()">Оформити
+                        замовлення</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="products.js?v=4.0"></script>
-    <script src="script.js?v=4.0"></script>
+    <script src="products.js?v=4.2"></script>
+    <script src="script.js?v=4.2"></script>
 </body>
 
 </html>

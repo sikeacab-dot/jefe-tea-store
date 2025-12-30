@@ -2,14 +2,12 @@
 const tg = window.Telegram.WebApp;
 try {
     tg.expand();
-    // Enable closing confirmation to prevent accidental closing
     tg.enableClosingConfirmation();
 } catch (e) {
     console.error('Telegram init failed:', e);
 }
 
 // State
-// Load products from localStorage or fallback
 window.allProducts = (function () {
     const stored = localStorage.getItem('jefe_products');
     if (stored) {
@@ -20,7 +18,7 @@ window.allProducts = (function () {
             return products;
         }
     }
-    return products; // Global from products.js
+    return products;
 })();
 
 let cart = {};
@@ -30,11 +28,9 @@ let currentQuantity = 1;
 // DOM Elements
 const productList = document.getElementById('product-list');
 const modal = document.getElementById('product-modal');
-const modalImage = document.getElementById('modal-image');
 const modalTitle = document.getElementById('modal-title');
 const modalPrice = document.getElementById('modal-price');
 const modalCategory = document.getElementById('modal-category');
-const modalOrigin = document.getElementById('modal-origin');
 const modalDescription = document.getElementById('modal-description');
 const quantityDisplay = document.getElementById('quantity-display');
 
@@ -44,31 +40,23 @@ const cartItemsContainer = document.getElementById('cart-items');
 const cartTotalDisplay = document.getElementById('cart-total');
 const cartBadge = document.getElementById('cart-badge');
 
-// Localization Map (Simple)
-const STRINGS = {
-    currency: '₴'
-};
-
-// Make functions global
+// Global Functions
 window.renderProducts = function (filter = 'all') {
     const filteredProducts = filter === 'all'
         ? window.allProducts
         : window.allProducts.filter(p => p.category === filter);
 
     productList.innerHTML = filteredProducts.map(product => {
-        // Handle images (backward compatibility)
         let displayImage = product.image || 'assets/tea_new.jpg';
         if (product.images && product.images.length > 0) {
             displayImage = product.images[0];
         }
 
-        // Price Logic for Card
         let priceDisplay = `${product.price}₴`;
         if (product.variants) {
             if (product.variants['100']) {
                 priceDisplay = `${product.variants['100']}₴`;
             } else {
-                // Show raw min price
                 const vals = Object.values(product.variants);
                 const min = Math.min(...vals);
                 priceDisplay = `${min}₴`;
@@ -79,9 +67,7 @@ window.renderProducts = function (filter = 'all') {
         <div class="product-card" onclick="window.openProduct(${product.id})">
             ${product.badge === 'fire' ? `
                 <div class="product-badge">
-                    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M19.48 13.03c-.32-.8-.82-1.53-1.48-2.14-.52-.47-.91-.97-1.2-1.5-.67-.86-.99-1.83-1.13-2.79-.33-2.39 1.67-4.38 4.07-4.71-.77-.13-1.56-.08-2.33.12-2.36.42-3.8 2.65-3.21 4.98-2.58.55-4.48 2.82-4.48 5.67 0 .2.02.4.05.6-.24.05-.44.05-.69.05-1.19-.19-2.27-.75-2.99-1.65-1.78 2.52-1.25 5.94.03 8.97 1.67 3.96 6.28 5.85 10.22 4.19 2.15-.91 3.67-2.68 4.25-4.78.2-.74.32-1.51.25-2.29-.05-.77-.35-1.39-1.02-1.74l-.34.02z" />
-                    </svg>
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.48 13.03c-.32-.8-.82-1.53-1.48-2.14-.52-.47-.91-.97-1.2-1.5-.67-.86-.99-1.83-1.13-2.79-.33-2.39 1.67-4.38 4.07-4.71-.77-.13-1.56-.08-2.33.12-2.36.42-3.8 2.65-3.21 4.98-2.58.55-4.48 2.82-4.48 5.67 0 .2.02.4.05.6-.24.05-.44.05-.69.05-1.19-.19-2.27-.75-2.99-1.65-1.78 2.52-1.25 5.94.03 8.97 1.67 3.96 6.28 5.85 10.22 4.19 2.15-.91 3.67-2.68 4.25-4.78.2-.74.32-1.51.25-2.29-.05-.77-.35-1.39-1.02-1.74l-.34.02z" /></svg>
                 </div>
             ` : ''}
             <img src="${displayImage}" alt="${product.name}" class="product-image" loading="lazy">
@@ -91,18 +77,13 @@ window.renderProducts = function (filter = 'all') {
                 <div class="product-price">${priceDisplay}</div>
                 <button class="btn-mini-add">Додати</button>
             </div>
-        </div>
-    `}).join('');
+        </div>`;
+    }).join('');
 };
 
 window.filterCategory = function (category) {
     document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.remove('active');
-        // Simple mapping for demo, ideally strictly use IDs
-        const btnCat = btn.getAttribute('onclick').match(/'([^']+)'/)[1];
-        if (btnCat === category) {
-            btn.classList.add('active');
-        }
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${category}'`));
     });
     window.renderProducts(category);
     if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
@@ -114,62 +95,36 @@ window.openProduct = function (id) {
 
     currentProductId = id;
     currentQuantity = 1;
-    window.currentVariant = null; // Reset variant
-    window.currentSlide = 0; // Reset carousel
+    window.currentVariant = null;
+    window.currentSlide = 0;
     window.updateQuantityDisplay();
 
-    // Init Carousel
-    let productImages = [];
-    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-        productImages = product.images.filter(img => img && img.trim() !== '');
-    }
-
-    // Fallback to single image if needed
-    if (productImages.length === 0 && product.image) {
-        productImages = [product.image];
-    }
-
-    // Global fallback if nothing found
-    if (productImages.length === 0) {
-        productImages = ['assets/tea_new.jpg'];
-    }
+    let productImages = (product.images && product.images.length > 0) ? product.images : [product.image || 'assets/tea_new.jpg'];
 
     const track = document.getElementById('carousel-track');
     const dotsContainer = document.getElementById('carousel-dots');
-
-    track.innerHTML = productImages.map(img => `
-        <img src="${img}" 
-             alt="${product.name}" 
-             onerror="this.onerror=null; this.src='https://placehold.co/400x400?text=Tea+Image'">
-    `).join('');
+    if (track) {
+        track.innerHTML = productImages.map(img => `<img src="${img}" alt="${product.name}" onerror="this.src='https://placehold.co/400x400?text=Tea+Image'">`).join('');
+    }
 
     const hasMultiple = productImages.length > 1;
+    if (dotsContainer) {
+        dotsContainer.innerHTML = hasMultiple ? productImages.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="window.goToImage(${i})"></div>`).join('') : '';
+    }
 
-    dotsContainer.innerHTML = hasMultiple
-        ? productImages.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="window.goToImage(${i})"></div>`).join('')
-        : '';
+    window.updateCarouselUI();
+    document.querySelectorAll('.carousel-nav').forEach(nav => nav.style.display = hasMultiple ? 'block' : 'none');
 
-    window.updateCarouselUI(); // Set initial state
+    if (modalTitle) modalTitle.textContent = product.name;
+    if (modalCategory) modalCategory.textContent = product.category;
+    if (modalDescription) modalDescription.textContent = product.description;
 
-    // UI controls visibility
-    const navs = document.querySelectorAll('.carousel-nav');
-    navs.forEach(nav => nav.style.display = hasMultiple ? 'block' : 'none');
-    dotsContainer.style.display = hasMultiple ? 'flex' : 'none';
-
-    modalTitle.textContent = product.name;
-    modalCategory.textContent = product.category;
-    modalDescription.textContent = product.description;
-
-    // Price & Variants Logic
     const vContainer = document.getElementById('modal-variants');
     if (vContainer) {
         vContainer.innerHTML = '';
-
         if (product.variants) {
             vContainer.style.display = 'flex';
-            // Sort keys: 50, 100, 200, 250, 357
             const weights = Object.keys(product.variants).sort((a, b) => Number(a) - Number(b));
-
             weights.forEach(w => {
                 const btn = document.createElement('button');
                 btn.className = 'weight-btn';
@@ -177,392 +132,188 @@ window.openProduct = function (id) {
                 btn.onclick = () => window.setVariant(w);
                 vContainer.appendChild(btn);
             });
-
-            // Default to 100g if exists, else first
-            if (product.variants['100']) window.setVariant('100');
-            else window.setVariant(weights[0]);
-
+            window.setVariant(product.variants['100'] ? '100' : weights[0]);
         } else {
-            // Fixed Price
             vContainer.style.display = 'none';
-            modalPrice.textContent = `${product.price}₴`;
+            if (modalPrice) modalPrice.textContent = `${product.price}₴`;
         }
-    } else {
-        // Fallback for modal price if no variants container
-        modalPrice.textContent = `${product.price}₴`;
     }
 
-    // Brewing Guide
     const brewContainer = document.getElementById('modal-brewing');
     if (brewContainer) {
         if (product.brewing) {
             brewContainer.style.display = 'flex';
             brewContainer.innerHTML = `
-                <div class="brew-tag" title="Кількість проливів">
-                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 8h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1M6 9v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M6 9l2-5h8l2 5M10.5 14a2.5 2.5 0 1 0 5 0"/>
-                    </svg>
-                    <span>${product.brewing.steeps}</span>
-                </div>
-                <div class="brew-tag" title="Час заварювання">
-                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                    <span>${product.brewing.time}с</span>
-                </div>
-                <div class="brew-tag" title="Вага">
-                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 5H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5z"/>
-                        <path d="M12 12h.01"/>
-                        <path d="M12 8v-3"/>
-                    </svg>
-                    <span>${product.brewing.grams}г</span>
-                </div>
-            `;
+                <div class="brew-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 8h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1M6 9v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M6 9l2-5h8l2 5M10.5 14a2.5 2.5 0 1 0 5 0"/></svg><span>${product.brewing.steeps}</span></div>
+                <div class="brew-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>${product.brewing.time}с</span></div>
+                <div class="brew-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 5H3v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5z"/><path d="M12 12h.01"/><path d="M12 8v-3"/></svg><span>${product.brewing.grams}г</span></div>`;
         } else {
             brewContainer.style.display = 'none';
-            brewContainer.innerHTML = '';
         }
     }
 
-    modal.classList.add('active');
+    if (modal) modal.classList.add('active');
     if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 };
 
 window.setVariant = function (weight) {
-    const product = window.allProducts.find(p => p.id === currentProductId);
-    if (!product || !product.variants[weight]) return;
-
+    const p = window.allProducts.find(x => x.id === currentProductId);
+    if (!p || !p.variants[weight]) return;
     window.currentVariant = weight;
-
-    // Update Price
-    document.getElementById('modal-price').textContent = `${product.variants[weight]}₴`;
-
-    // Update Buttons
-    document.querySelectorAll('.weight-btn').forEach(btn => {
-        if (btn.textContent === `${weight}г`) btn.classList.add('active');
-        else btn.classList.remove('active');
-    });
+    if (modalPrice) modalPrice.textContent = `${p.variants[weight]}₴`;
+    document.querySelectorAll('.weight-btn').forEach(btn => btn.classList.toggle('active', btn.textContent === `${weight}г`));
 };
 
-window.closeModal = function () {
-    modal.classList.remove('active');
-    currentProductId = null;
-    window.currentVariant = null;
-};
-
-// Carousel Logic
-window.currentSlide = 0;
-window.moveCarousel = function (delta) {
-    const product = window.allProducts.find(p => p.id === currentProductId);
-    if (!product) return;
-    const images = product.images || [product.image];
-    const count = images.length;
-
-    window.currentSlide = (window.currentSlide + delta + count) % count;
-    window.updateCarouselUI();
-    if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-};
-
-window.goToImage = function (index) {
-    window.currentSlide = index;
-    window.updateCarouselUI();
-};
-
+window.closeModal = function () { if (modal) modal.classList.remove('active'); };
 window.updateCarouselUI = function () {
     const track = document.getElementById('carousel-track');
-    const dots = document.querySelectorAll('.dot');
-    if (!track) return;
-
-    track.style.transform = `translateX(-${window.currentSlide * 100}%)`;
-
-    dots.forEach((dot, i) => {
-        dot.classList.toggle('active', i === window.currentSlide);
-    });
+    if (track) track.style.transform = `translateX(-${window.currentSlide * 100}%)`;
+    document.querySelectorAll('.dot').forEach((dot, i) => dot.classList.toggle('active', i === window.currentSlide));
 };
+window.moveCarousel = function (d) {
+    const p = window.allProducts.find(x => x.id === currentProductId);
+    const len = (p.images && p.images.length > 0) ? p.images.length : 1;
+    window.currentSlide = (window.currentSlide + d + len) % len;
+    window.updateCarouselUI();
+};
+window.goToImage = function (i) { window.currentSlide = i; window.updateCarouselUI(); };
 
-// Touch Support for Carousel
-let touchStartX = 0;
-let touchEndX = 0;
-
-modal.addEventListener('touchstart', e => {
-    if (e.target.closest('.modal-carousel')) {
-        touchStartX = e.changedTouches[0].screenX;
-    }
-}, { passive: true });
-
-modal.addEventListener('touchend', e => {
-    if (e.target.closest('.modal-carousel')) {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }
-}, { passive: true });
-
-function handleSwipe() {
-    const diff = touchStartX - touchEndX;
-    if (Math.abs(diff) > 50) { // Threshold
-        if (diff > 0) window.moveCarousel(1);  // Swipe Left -> Next
-        else window.moveCarousel(-1);           // Swipe Right -> Prev
-    }
-}
-
-window.adjustQuantity = function (delta) {
-    const newQty = currentQuantity + delta;
-    if (newQty >= 1 && newQty <= 50) {
-        currentQuantity = newQty;
+window.adjustQuantity = function (d) {
+    const n = currentQuantity + d;
+    if (n >= 1 && n <= 50) {
+        currentQuantity = n;
         window.updateQuantityDisplay();
         if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
     }
 };
+window.updateQuantityDisplay = function () { if (quantityDisplay) quantityDisplay.textContent = currentQuantity; };
 
-window.updateQuantityDisplay = function () {
-    if (quantityDisplay) quantityDisplay.textContent = currentQuantity;
-};
-
-window.addToCart = function (isBuyNow) {
+window.addToCart = function (buyNow) {
     if (!currentProductId) return;
-
-    // Create composite key for cart: ID_Weight (e.g. "123_100") or just ID ("123")
-    let cartKey = String(currentProductId);
-    if (window.currentVariant) {
-        cartKey = `${currentProductId}_${window.currentVariant}`;
-    }
-
-    if (!cart[cartKey]) cart[cartKey] = 0;
-    cart[cartKey] += currentQuantity;
-
+    let key = String(currentProductId);
+    if (window.currentVariant) key += `_${window.currentVariant}`;
+    cart[key] = (cart[key] || 0) + currentQuantity;
     window.closeModal();
     window.updateCartBadge();
-
     if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-
-    if (isBuyNow) {
-        window.openCart();
-    } else {
-        window.openConfirmModal();
-    }
+    if (buyNow) window.openCart();
+    else window.openConfirmModal();
 };
 
-window.openConfirmModal = function () {
-    cartConfirmModal.classList.add('active');
-};
-
-window.closeConfirmModal = function () {
-    cartConfirmModal.classList.remove('active');
-};
+window.openConfirmModal = function () { if (cartConfirmModal) cartConfirmModal.classList.add('active'); };
+window.closeConfirmModal = function () { if (cartConfirmModal) cartConfirmModal.classList.remove('active'); };
 
 window.openCart = function () {
-    window.closeConfirmModal(); // Ensure this is closed if open
+    window.closeConfirmModal();
 
-    // Reset UI visibility
-    const itemsList = document.getElementById('cart-items');
+    // RESET UI STATES
+    const items = document.getElementById('cart-items');
     const footer = document.querySelector('.checkout-footer');
     const title = document.getElementById('checkout-title');
     const success = document.getElementById('checkout-success');
+    const btn = document.querySelector('.btn-checkout');
 
-    if (itemsList) itemsList.classList.remove('hidden');
+    if (items) items.classList.remove('hidden');
     if (footer) footer.classList.remove('hidden');
     if (title) title.classList.remove('hidden');
     if (success) success.classList.add('hidden');
 
-    // Render Cart Items
-    const cartEntries = Object.entries(cart);
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Оформити замовлення';
+        btn.style.opacity = '1';
+        btn.style.background = '';
+    }
 
-    if (cartEntries.length === 0) {
-        // Handle empty cart if needed, or just show empty state
-        if (itemsList) itemsList.innerHTML = '<div class="empty-cart">Кошик порожній</div>';
+    const entries = Object.entries(cart);
+    if (entries.length === 0) {
+        if (items) items.innerHTML = '<div class="empty-cart">Кошик порожній</div>';
         if (cartTotalDisplay) cartTotalDisplay.textContent = '0₴';
     } else {
         let total = 0;
-        if (itemsList) {
-            itemsList.innerHTML = cartEntries.map(([key, qty]) => {
-                // Parse Key
-                const [idStr, variant] = key.split('_');
-                const id = parseInt(idStr);
-
-                const product = window.allProducts.find(p => p.id === id);
-                if (!product) return '';
-
-                // Determine Price
-                let price = product.price;
-                let itemTitle = product.name;
-
-                if (variant && product.variants && product.variants[variant]) {
-                    price = product.variants[variant];
-                    itemTitle += ` (${variant}г)`;
-                } else if (variant) {
-                    // Legacy or Broken state fallback
-                    itemTitle += ` (${variant}г)`;
-                }
-
-                const itemTotal = price * qty;
-                total += itemTotal;
-                const cartDisplayImage = (product.images && product.images.length > 0) ? product.images[0] : (product.image || 'assets/tea_new.jpg');
+        if (items) {
+            items.innerHTML = entries.map(([k, q]) => {
+                const [id, v] = k.split('_');
+                const p = window.allProducts.find(x => x.id === parseInt(id));
+                if (!p) return '';
+                let price = v ? p.variants[v] : p.price;
+                total += (price * q);
+                const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'assets/tea_new.jpg');
                 return `
-                    <div class="cart-item">
-                        <img src="${cartDisplayImage}" class="cart-item-img">
-                        <div class="cart-item-info">
-                            <div class="cart-item-title">${itemTitle}</div>
-                            <div class="cart-item-price">${qty} x ${price}₴ = ${itemTotal}₴</div>
-                        </div>
+                <div class="cart-item">
+                    <img src="${img}" class="cart-item-img">
+                    <div class="cart-item-info">
+                        <div class="cart-item-title">${p.name}${v ? ' (' + v + 'г)' : ''}</div>
+                        <div class="cart-item-price">${q} x ${price}₴ = ${price * q}₴</div>
                     </div>
-                `;
+                </div>`;
             }).join('');
         }
         if (cartTotalDisplay) cartTotalDisplay.textContent = `${total}₴`;
     }
-
-    checkoutModal.classList.add('active');
+    if (checkoutModal) checkoutModal.classList.add('active');
 };
 
-window.closeCheckout = function () {
-    checkoutModal.classList.remove('active');
-};
+window.closeCheckout = function () { if (checkoutModal) checkoutModal.classList.remove('active'); };
 
 window.updateCartBadge = function () {
-    const count = Object.values(cart).reduce((a, b) => a + b, 0);
+    const c = Object.values(cart).reduce((a, b) => a + b, 0);
     if (cartBadge) {
-        cartBadge.textContent = count;
-        cartBadge.style.display = count > 0 ? 'flex' : 'none';
+        cartBadge.textContent = c;
+        cartBadge.style.display = c > 0 ? 'flex' : 'none';
     }
 };
 
-// Bot Config (Values will be replaced by GitHub Actions during deploy)
 const BOT_TOKEN = '__BOT_TOKEN_PLACEHOLDER__'.trim().replace(/^"|"$/g, '');
 const ADMIN_CHAT_ID = '__ADMIN_CHAT_ID_PLACEHOLDER__'.trim().replace(/^"|"$/g, '');
 
 window.processCheckout = async function () {
-    const checkoutBtn = document.querySelector('.btn-checkout');
-    if (!checkoutBtn || checkoutBtn.disabled) return;
+    const btn = document.querySelector('.btn-checkout');
+    if (!btn || btn.disabled) return;
 
-    if (BOT_TOKEN.includes('PLACEHOLDER')) {
-        console.error('Telegram Bot Token not configured!');
-        alert('Помилка конфігурації бота. Будь ласка, переконайтеся, що секрети на GitHub налаштовані.');
-        return;
-    }
-
-    const phoneInput = document.getElementById('order-phone');
-    const selectedMessenger = document.querySelector('input[name="messenger"]:checked')?.value || 'Telegram';
-    const phoneNumber = phoneInput?.value.trim();
-
-    if (!phoneNumber) {
-        alert('Будь ласка, введіть ваш номер телефону для зв\'язку!');
-        phoneInput?.focus();
-        return;
-    }
+    const phone = document.getElementById('order-phone')?.value.trim();
+    if (!phone) { alert('Будь ласка, введіть телефон!'); document.getElementById('order-phone')?.focus(); return; }
 
     let total = 0;
-    Object.entries(cart).forEach(([key, qty]) => {
-        const [idStr, variant] = key.split('_');
-        const id = parseInt(idStr);
-        const p = window.allProducts.find(prod => prod.id === id);
-
+    let list = [];
+    Object.entries(cart).forEach(([k, q]) => {
+        const [id, v] = k.split('_');
+        const p = window.allProducts.find(x => x.id === parseInt(id));
         if (p) {
-            let price = p.price;
-            if (variant && p.variants && p.variants[variant]) {
-                price = p.variants[variant];
-            }
-            total += (price * qty);
+            let price = v ? p.variants[v] : p.price;
+            total += (price * q);
+            list.push(`• ${p.name}${v ? ' (' + v + 'г)' : ''} x${q}`);
         }
     });
 
-    const user = tg.initDataUnsafe?.user || {};
-    const userName = user.first_name || 'Клієнт';
-    const userUsername = user.username ? `@${user.username}` : 'немає';
-
-    let message = `<b>📦 Нове замовлення!</b>\n\n`;
-    message += `👤 <b>Клієнт:</b> ${userName} (${userUsername})\n`;
-    message += `🆔 <b>ID:</b> <code>${user.id || 'невідомо'}</code>\n`;
-    message += `📞 <b>Контакт:</b> ${phoneNumber} (${selectedMessenger})\n\n`;
-    message += `🛒 <b>Товари:</b>\n`;
-
-    const items = [];
-    Object.entries(cart).forEach(([key, qty]) => {
-        const [idStr, variant] = key.split('_');
-        const id = parseInt(idStr);
-        const product = window.allProducts.find(p => p.id === id);
-
-        if (product) {
-            let name = product.name;
-            if (variant) name += ` (${variant}г)`;
-            items.push(`• ${name} x${qty}`);
-        }
-    });
-
-    message += items.join('\n');
-    message += `\n\n💰 <b>Сума:</b> ${total}₴`;
+    const u = tg.initDataUnsafe?.user || {};
+    let msg = `<b>📦 Нове замовлення!</b>\n\n`;
+    msg += `👤 <b>Клієнт:</b> ${u.first_name || 'Клієнт'} (${u.username ? '@' + u.username : 'немає'})\n`;
+    msg += `📞 <b>Контакт:</b> ${phone} (${document.querySelector('input[name="messenger"]:checked')?.value || 'Telegram'})\n\n`;
+    msg += `🛒 <b>Товари:</b>\n${list.join('\n')}\n\n💰 <b>Сума:</b> ${total}₴`;
 
     try {
-        // Change button state
-        checkoutBtn.disabled = true;
-        checkoutBtn.textContent = 'Надсилаємо...';
-        checkoutBtn.style.opacity = '0.7';
-
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        btn.disabled = true; btn.textContent = 'Надсилаємо...'; btn.style.opacity = '0.7';
+        const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: ADMIN_CHAT_ID,
-                text: message,
-                parse_mode: 'HTML'
-            })
+            body: JSON.stringify({ chat_id: ADMIN_CHAT_ID, text: msg, parse_mode: 'HTML' })
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
+        if (res.ok) {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-
-            // Show Success State in UI without overwriting item list
-            const itemsList = document.getElementById('cart-items');
-            const footer = document.querySelector('.checkout-footer');
-            const title = document.getElementById('checkout-title');
-            const success = document.getElementById('checkout-success');
-
-            if (itemsList) itemsList.classList.add('hidden');
-            if (footer) footer.classList.add('hidden');
-            if (title) title.classList.add('hidden');
-            if (success) success.classList.remove('hidden');
-
-            // Clear cart
-            cart = {};
-            window.updateCartBadge();
-
-            // Auto close after 5 seconds
-            setTimeout(() => {
-                window.closeCheckout();
-            }, 5000);
-
-        } else {
-            console.error('Telegram API Error:', data);
-            alert(`Помилка API: ${data.description || 'невідома помилка'}`);
-            checkoutBtn.disabled = false;
-            checkoutBtn.textContent = 'Оформити замовлення';
-            checkoutBtn.style.opacity = '1';
-        }
+            document.getElementById('cart-items')?.classList.add('hidden');
+            document.querySelector('.checkout-footer')?.classList.add('hidden');
+            document.getElementById('checkout-title')?.classList.add('hidden');
+            document.getElementById('checkout-success')?.classList.remove('hidden');
+            cart = {}; window.updateCartBadge();
+            setTimeout(() => window.closeCheckout(), 5000);
+        } else throw new Error('API Error');
     } catch (e) {
-        console.error('Checkout failed:', e);
-        alert(`Помилка запиту: ${e.message}`);
-        checkoutBtn.disabled = false;
-        checkoutBtn.textContent = 'Помилка. Спробуйте ще раз';
-        checkoutBtn.style.background = '#ff4444';
+        btn.disabled = false; btn.textContent = 'Спробуйте ще раз'; btn.style.background = '#ff4444';
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
     }
 };
 
-// Event Listeners
-[modal, cartConfirmModal, checkoutModal].forEach(m => {
-    if (m) {
-        m.addEventListener('click', (e) => {
-            if (e.target === m) {
-                m.classList.remove('active');
-            }
-        });
-    }
-});
-
-// Init
 window.renderProducts();
 window.updateCartBadge();
 tg.ready();

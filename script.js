@@ -512,7 +512,7 @@ window.processCheckout = async function () {
                 // Reset UI for next time
                 setTimeout(() => {
                     const footer = document.querySelector('.checkout-footer');
-                    if (footer) footer.style.display = 'flex';
+                    if (footer) footer.style.display = ''; // Revert to CSS value (block !important)
                 }, 500);
             }, 5000);
 

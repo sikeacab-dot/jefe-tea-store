@@ -20,19 +20,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Replace Secrets
-        env:
-          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          if [ -z "$BOT_TOKEN" ]; then
-            echo "❌ ERROR: TELEGRAM_BOT_TOKEN is empty! Check your GitHub Secrets."
-            exit 1
-          fi
-          sed -i "s/__BOT_TOKEN_PLACEHOLDER__/$BOT_TOKEN/g" script.js
-          sed -i "s/__ADMIN_CHAT_ID_PLACEHOLDER__/$CHAT_ID/g" script.js
-          echo "✅ Secrets replaced successfully."
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
       

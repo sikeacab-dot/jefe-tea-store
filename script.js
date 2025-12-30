@@ -404,9 +404,9 @@ window.updateCartBadge = function () {
     cartBadge.style.display = count > 0 ? 'flex' : 'none';
 };
 
-// Bot Config
-const BOT_TOKEN = '8391787130:AAF_X5_sODHtWfQK4nNefdlrmlD_wb_E87w';
-const ADMIN_CHAT_ID = '8391787130';
+// Bot Config (Values will be replaced by GitHub Actions during deploy)
+const BOT_TOKEN = '__BOT_TOKEN_PLACEHOLDER__'.trim().replace(/^"|"$/g, '');
+const ADMIN_CHAT_ID = '__ADMIN_CHAT_ID_PLACEHOLDER__'.trim().replace(/^"|"$/g, '');
 
 window.processCheckout = async function () {
     const checkoutBtn = document.querySelector('.btn-checkout');

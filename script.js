@@ -1,5 +1,5 @@
 /**
- * ZEN ARCHITECTURE v5.0
+ * ZEN ARCHITECTURE v5.1
  * Clean code, original branding, mobile-first fixes.
  */
 
@@ -230,6 +230,7 @@ const ZenUI = {
                 document.getElementById('cart-items').classList.add('hidden');
                 document.getElementById('checkout-footer').classList.add('hidden');
                 document.getElementById('checkout-title').classList.add('hidden');
+                document.getElementById('checkout-success').classList.remove('hidden');
                 ZenState.cart = {}; this.updateBadge();
             } else throw new Error();
         } catch (e) {

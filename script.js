@@ -418,6 +418,16 @@ window.processCheckout = async function () {
         return;
     }
 
+    const phoneInput = document.getElementById('order-phone');
+    const selectedMessenger = document.querySelector('input[name="messenger"]:checked')?.value || 'Telegram';
+    const phoneNumber = phoneInput?.value.trim();
+
+    if (!phoneNumber) {
+        alert('Будь ласка, введіть ваш номер телефону для зв\'язку!');
+        phoneInput?.focus();
+        return;
+    }
+
     const total = Object.entries(cart).reduce((sum, [key, qty]) => {
         const [idStr, variant] = key.split('_');
         const id = parseInt(idStr);
@@ -438,7 +448,8 @@ window.processCheckout = async function () {
 
     let message = `<b>📦 Нове замовлення!</b>\n\n`;
     message += `👤 <b>Клієнт:</b> ${userName} (${userUsername})\n`;
-    message += `🆔 <b>ID:</b> <code>${user.id || 'невідомо'}</code>\n\n`;
+    message += `🆔 <b>ID:</b> <code>${user.id || 'невідомо'}</code>\n`;
+    message += `📞 <b>Контакт:</b> ${phoneNumber} (${selectedMessenger})\n\n`;
     message += `🛒 <b>Товари:</b>\n`;
 
     const items = [];

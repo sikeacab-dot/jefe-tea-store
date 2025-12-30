@@ -125,8 +125,33 @@
                         <span id="cart-total">$0</span>
                     </div>
 
+                    <div class="checkout-contact-form">
+                        <div class="form-group">
+                            <label>Ваш месенджер для зв'язку:</label>
+                            <div class="messenger-selector">
+                                <label class="messenger-option">
+                                    <input type="radio" name="messenger" value="Telegram" checked>
+                                    <span class="messenger-box">Telegram</span>
+                                </label>
+                                <label class="messenger-option">
+                                    <input type="radio" name="messenger" value="Viber">
+                                    <span class="messenger-box">Viber</span>
+                                </label>
+                                <label class="messenger-option">
+                                    <input type="radio" name="messenger" value="WhatsApp">
+                                    <span class="messenger-box">WhatsApp</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="order-phone">Номер телефону:</label>
+                            <input type="tel" id="order-phone" class="form-input" placeholder="+380..." required>
+                        </div>
+                    </div>
+
                     <div class="checkout-instruction">
-                        <p>Натискаючи кнопку нижче, ви автоматично надсилаєте замовлення нашому менеджеру.</p>
+                        <p>Натискаючи кнопку нижче, ви надішлете замовлення нашому менеджеру.</p>
                     </div>
 
                     <button class="btn-primary btn-checkout" onclick="processCheckout()">
@@ -137,8 +162,8 @@
         </div>
     </div>
 
-    <script src="products.js?v=2.4"></script>
-    <script src="script.js?v=2.4"></script>
+    <script src="products.js?v=2.6"></script>
+    <script src="script.js?v=2.6"></script>
 </body>
 
 </html>

@@ -405,8 +405,8 @@ window.updateCartBadge = function () {
 };
 
 // Bot Config (Values will be replaced by GitHub Actions during deploy)
-const BOT_TOKEN = '__BOT_TOKEN_PLACEHOLDER__';
-const ADMIN_CHAT_ID = '__ADMIN_CHAT_ID_PLACEHOLDER__';
+const BOT_TOKEN = '__BOT_TOKEN_PLACEHOLDER__'.trim().replace(/^"|"$/g, '');
+const ADMIN_CHAT_ID = '__ADMIN_CHAT_ID_PLACEHOLDER__'.trim().replace(/^"|"$/g, '');
 
 window.processCheckout = async function () {
     const checkoutBtn = document.querySelector('.btn-checkout');
@@ -414,7 +414,7 @@ window.processCheckout = async function () {
 
     if (BOT_TOKEN.includes('PLACEHOLDER')) {
         console.error('Telegram Bot Token not configured!');
-        alert('Помилка конфігурації бота. Будь ласка, зверніться до адміністратора.');
+        alert('Помилка конфігурації бота. Будь ласка, переконайтеся, що секрети на GitHub налаштовані.');
         return;
     }
 
@@ -436,10 +436,10 @@ window.processCheckout = async function () {
     const userName = user.first_name || 'Клієнт';
     const userUsername = user.username ? `@${user.username}` : 'немає';
 
-    let message = `📦 *Нове замовлення!*\n\n`;
-    message += `👤 *Клієнт:* ${userName} (${userUsername})\n`;
-    message += `🆔 *ID:* \`${user.id || 'невідомо'}\`\n\n`;
-    message += `🛒 *Товари:*\n`;
+    let message = `<b>📦 Нове замовлення!</b>\n\n`;
+    message += `👤 <b>Клієнт:</b> ${userName} (${userUsername})\n`;
+    message += `🆔 <b>ID:</b> <code>${user.id || 'невідомо'}</code>\n\n`;
+    message += `🛒 <b>Товари:</b>\n`;
 
     const items = [];
     Object.entries(cart).forEach(([key, qty]) => {
@@ -455,7 +455,7 @@ window.processCheckout = async function () {
     });
 
     message += items.join('\n');
-    message += `\n\n💰 *Сума:* ${total}₴`;
+    message += `\n\n💰 <b>Сума:</b> ${total}₴`;
 
     try {
         // Change button state
@@ -470,9 +470,11 @@ window.processCheckout = async function () {
             body: JSON.stringify({
                 chat_id: ADMIN_CHAT_ID,
                 text: message,
-                parse_mode: 'Markdown'
+                parse_mode: 'HTML'
             })
         });
+
+        const data = await response.json();
 
         if (response.ok) {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
@@ -503,6 +505,8 @@ window.processCheckout = async function () {
             }, 5000);
 
         } else {
+            console.error('Telegram API Error:', data);
+            alert(`Помилка API: ${data.description || 'невідома помилка'}`);
             throw new Error('API Error');
         }
     } catch (e) {

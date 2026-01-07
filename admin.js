@@ -29,8 +29,7 @@ window.filterAdmin = function (category) {
     // Update tabs UI
     document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.classList.remove('active');
-        const onclickVal = btn.getAttribute('onclick');
-        if (onclickVal.includes(`'${category}'`)) {
+        if (btn.innerText.toLowerCase().includes(category.toLowerCase()) || (category === 'all' && btn.innerText === 'Все')) {
             btn.classList.add('active');
         }
     });
@@ -102,6 +101,7 @@ window.openEditModal = function (id = null) {
             document.getElementById('edit-image-url').value = '';
             document.getElementById('edit-origin').value = p.origin;
             document.getElementById('edit-description').value = p.description;
+            document.getElementById('edit-on-order').checked = !!p.on_order;
 
             // Load images
             window.currentImages = p.images ? [...p.images] : (p.image ? [p.image] : []);
@@ -160,6 +160,7 @@ window.openEditModal = function (id = null) {
         renderImageSlots();
         document.getElementById('edit-origin').value = '';
         document.getElementById('edit-description').value = '';
+        document.getElementById('edit-on-order').checked = false;
 
         document.getElementById('edit-badge').value = 'none';
         document.getElementById('edit-steeps').value = '7';
@@ -215,6 +216,7 @@ window.saveProduct = function () {
         image: window.currentImages[0] || '', // Fallback for backward compatibility
         origin: document.getElementById('edit-origin').value,
         description: document.getElementById('edit-description').value,
+        on_order: document.getElementById('edit-on-order').checked,
 
         // New Fields
         badge: document.getElementById('edit-badge').value,

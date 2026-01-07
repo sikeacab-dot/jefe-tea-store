@@ -156,11 +156,10 @@
         <!-- Category Tabs -->
         <div class="category-scroll" style="margin-bottom: 20px; padding: 10px 0;">
             <button class="cat-btn active" onclick="filterAdmin('all')">Все</button>
-            <button class="cat-btn" onclick="filterAdmin('Puerh')">Puerh</button>
-            <button class="cat-btn" onclick="filterAdmin('Oolong')">Oolong</button>
-            <button class="cat-btn" onclick="filterAdmin('Green')">Green</button>
-            <button class="cat-btn" onclick="filterAdmin('White')">White</button>
-            <button class="cat-btn" onclick="filterAdmin('Black')">Black</button>
+            <button class="cat-btn" onclick="filterAdmin('Puerh')">Пуер</button>
+            <button class="cat-btn" onclick="filterAdmin('Oolong')">Улун</button>
+            <button class="cat-btn" onclick="filterAdmin('Sets')">Набори</button>
+            <button class="cat-btn" onclick="filterAdmin('Teaware')">Посуд</button>
         </div>
 
         <div class="product-list-admin" id="admin-list">
@@ -194,10 +193,15 @@
                     <select id="edit-category" class="form-select">
                         <option value="Puerh">Puerh (Пуер)</option>
                         <option value="Oolong">Oolong (Улун)</option>
-                        <option value="Green">Green (Зелений)</option>
-                        <option value="White">White (Білий)</option>
-                        <option value="Black">Black (Червоний)</option>
+                        <option value="Sets">Sets (Набори)</option>
+                        <option value="Teaware">Teaware (Посуд)</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" id="edit-on-order"> Під замовлення (вместо цены)
+                    </label>
                 </div>
 
                 <div class="form-group">
@@ -252,18 +256,23 @@
 
                 <div class="form-group">
                     <label class="form-label">Фото (до 5 шт.)</label>
-                    <div id="image-slots-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                    <div id="image-slots-container"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-bottom: 15px;">
                         <!-- Slots will be injected by JS -->
                     </div>
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                        <input type="text" id="edit-image-url" class="form-input" placeholder="URL изображения или Base64">
-                        <label for="file-upload" class="btn-secondary" style="display:flex; align-items:center; cursor:pointer;" title="Загрузить файл">
+                        <input type="text" id="edit-image-url" class="form-input"
+                            placeholder="URL изображения или Base64">
+                        <label for="file-upload" class="btn-secondary"
+                            style="display:flex; align-items:center; cursor:pointer;" title="Загрузить файл">
                             📂
                         </label>
                         <input type="file" id="file-upload" accept="image/*" style="display: none;">
                     </div>
-                    <button type="button" class="btn-sm" onclick="addImageFromInput()" style="width: 100%; margin-bottom: 10px;">+ Добавить фото</button>
-                    <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">Первое фото будет основным в каталоге.</div>
+                    <button type="button" class="btn-sm" onclick="addImageFromInput()"
+                        style="width: 100%; margin-bottom: 10px;">+ Добавить фото</button>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 4px;">Первое фото будет основным в каталоге.
+                    </div>
                 </div>
 
                 <div class="form-group">

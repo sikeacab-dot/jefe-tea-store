@@ -30,8 +30,12 @@ const ZenUI = {
 
         list.innerHTML = items.map(p => {
             const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'assets/tea_new.jpg');
-            let price = `${p.price}₴`;
-            if (p.variants) price = `${p.variants['100'] || Object.values(p.variants)[0]}₴`;
+            let priceDisplay = `${p.price}₴`;
+            if (p.on_order) {
+                priceDisplay = '<span style="font-size: 0.9em; color: var(--text-secondary);">Під замовлення</span>';
+            } else if (p.variants) {
+                priceDisplay = `${p.variants['100'] || Object.values(p.variants)[0]}₴`;
+            }
 
             return `
             <div class="product-card" onclick="ZenUI.openProduct(${p.id})">
@@ -40,7 +44,7 @@ const ZenUI = {
                 <div class="product-info">
                     <div class="product-category">${p.category}</div>
                     <div class="product-name">${p.name}</div>
-                    <div class="product-price">${price}</div>
+                    <div class="product-price">${priceDisplay}</div>
                     <button class="btn-mini-add">Додати</button>
                 </div>
             </div>`;
@@ -84,7 +88,11 @@ const ZenUI = {
             this.setVariant(p.variants['100'] ? '100' : ws[0]);
         } else {
             vCont.style.display = 'none';
-            document.getElementById('modal-price').textContent = `${p.price}₴`;
+            if (p.on_order) {
+                document.getElementById('modal-price').innerHTML = '<span style="font-size: 0.8em">Під замовлення</span>';
+            } else {
+                document.getElementById('modal-price').textContent = `${p.price}₴`;
+            }
         }
 
         const brew = document.getElementById('modal-brewing');
@@ -172,15 +180,24 @@ const ZenUI = {
                 const [id, v] = key.split('_');
                 const p = ZenState.products.find(x => x.id === parseInt(id));
                 if (p) {
-                    let price = v ? p.variants[v] : p.price;
-                    total += (price * qty);
+                    let priceVal = v ? p.variants[v] : p.price;
+                    let displayPrice = `${priceVal}₴`;
+                    let lineTotal = `${priceVal * qty}₴`;
+
+                    if (p.on_order) {
+                        displayPrice = 'Під замовлення';
+                        lineTotal = 'Під замовлення';
+                    } else {
+                        total += (priceVal * qty);
+                    }
+
                     const img = (p.images && p.images.length > 0) ? p.images[0] : (p.image || 'assets/tea_new.jpg');
                     html += `
                     <div class="cart-item">
                         <img src="${img}" class="cart-item-img">
                         <div class="cart-item-info">
                             <div class="cart-item-title">${p.name}${v ? ' (' + v + 'г)' : ''}</div>
-                            <div class="cart-item-price">${qty} x ${price}₴ = ${price * qty}₴</div>
+                            <div class="cart-item-price">${qty} x ${displayPrice} = ${lineTotal}</div>
                         </div>
                     </div>`;
                 }
@@ -193,6 +210,69 @@ const ZenUI = {
 
     closeModals() {
         document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+    },
+
+    openSupport() {
+        this.closeModals();
+
+        // Reset visibility
+        const form = document.getElementById('support-form-container');
+        const success = document.getElementById('support-success');
+        const title = document.getElementById('support-title');
+        const btn = document.getElementById('support-submit-btn');
+
+        if (form) form.classList.remove('hidden');
+        if (success) success.classList.add('hidden');
+        if (title) title.classList.remove('hidden');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Надіслати питання';
+            btn.style.background = '';
+        }
+
+        document.getElementById('support-modal').classList.add('active');
+        if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    },
+
+    async processSupport() {
+        const btn = document.getElementById('support-submit-btn');
+        if (btn.disabled) return;
+
+        const question = document.getElementById('support-question').value.trim();
+        const phone = document.getElementById('support-phone').value.trim();
+        const messenger = document.querySelector('input[name="support-messenger"]:checked')?.value || 'Telegram';
+
+        if (!question) { alert('Введіть ваше запитання!'); return; }
+        if (!phone) { alert('Введіть номер телефону!'); return; }
+
+        btn.disabled = true;
+        btn.textContent = 'Надсилаємо...';
+
+        const botToken = '__BOT_TOKEN_PLACEHOLDER__'.trim().replace(/^\"|\"$/g, '');
+        const chatId = '__ADMIN_CHAT_ID_PLACEHOLDER__'.trim().replace(/^\"|\"$/g, '');
+        const u = tg.initDataUnsafe?.user || {};
+
+        let msg = `<b>📩 Нове питання!</b>\n\n👤 ${u.first_name || 'Клієнт'}\n📞 ${phone} (${messenger})\n\n❓ <b>Питання:</b>\n${question}`;
+
+        try {
+            const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' })
+            });
+
+            if (res.ok) {
+                document.getElementById('support-form-container').classList.add('hidden');
+                document.getElementById('support-title').classList.add('hidden');
+                document.getElementById('support-success').classList.remove('hidden');
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } else throw new Error();
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = 'Помилка';
+            btn.style.background = '#ff4444';
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        }
     },
 
     async processCheckout() {
@@ -209,8 +289,8 @@ const ZenUI = {
             const p = ZenState.products.find(x => x.id === parseInt(id));
             if (p) {
                 let price = v ? p.variants[v] : p.price;
-                total += (price * q);
-                list.push(`• ${p.name}${v ? ' (' + v + 'г)' : ''} x${q}`);
+                if (!p.on_order) total += (price * q);
+                list.push(`• ${p.name}${v ? ' (' + v + 'г)' : ''} x${q} ${p.on_order ? '(Під замовлення)' : ''}`);
             }
         }
 

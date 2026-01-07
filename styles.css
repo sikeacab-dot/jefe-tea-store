@@ -60,6 +60,12 @@ header {
     /* Prevent wrapping */
 }
 
+.header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
 /* Ensure title doesn't push cart out */
 .header-top h1 {
     flex-shrink: 0;
@@ -107,6 +113,33 @@ header {
     width: 34px;
     height: 34px;
     background: rgba(255, 255, 255, 0.05);
+}
+
+.support-icon-wrapper {
+    position: relative;
+    color: var(--text-primary);
+    padding: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.support-icon-wrapper svg {
+    width: 18px;
+    height: 18px;
+}
+
+.support-icon-wrapper:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .cart-icon-wrapper svg {
@@ -426,16 +459,17 @@ header {
     height: 40px;
     border-radius: 50%;
     color: #FFF;
-    font-size: 2.2rem;
+    font-size: 1.5rem;
+    /* Reduced size for better centering control */
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 20;
     backdrop-filter: blur(8px);
-    line-height: 0;
-    /* Core fix for centering */
-    padding: 0;
+    padding: 0 0 2px 0;
+    /* Slight bottom padding to lift the character up */
+    line-height: 1;
 }
 
 .modal-divider {
@@ -559,6 +593,24 @@ header {
     border: 1px solid var(--border-color);
 }
 
+.form-input,
+.form-textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 1rem;
+}
+
+.form-textarea {
+    resize: none;
+    min-height: 100px;
+    margin-bottom: 10px;
+}
+
 .btn-circle {
     width: 32px;
     height: 32px;
@@ -571,6 +623,9 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
+    padding-bottom: 2px;
+    /* Lift up the + and - signs to compensate for font baseline */
 }
 
 .quantity-display {
